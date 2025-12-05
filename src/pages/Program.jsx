@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format, isSameDay, parseISO, isPast, set, isBefore, isAfter, differenceInMinutes, addMinutes } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { programData as initialProgramData } from '../data/program';
@@ -22,16 +22,25 @@ export default function Program() {
         : realTime;
 
     // Editable Program State
-    const [program, setProgram] = useState(() => {
-        const saved = localStorage.getItem('program_data');
-        return saved ? JSON.parse(saved) : initialProgramData;
-    });
+    const [program, setProgram] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [editingTime, setEditingTime] = useState(null);
+    const saveTimeoutRef = useRef(null);
 
-    // Persist to LocalStorage
+    // Fetch Data on Component Mount
     useEffect(() => {
-        localStorage.setItem('program_data', JSON.stringify(program));
-    }, [program]);
+        fetch('/api/program')
+            .then(res => res.json())
+            .then(data => {
+                setProgram(data);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to load program data", err);
+                setIsLoading(false);
+                setProgram(initialProgramData); // Fallback
+            });
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -65,7 +74,26 @@ export default function Program() {
         setTimeLeft(calculateTimeLeft());
     }, [displayTime]); // Recalculate whenever time changes (real or simulated)
 
-    // Event Handlers
+    // Save Data to Server (Debounced)
+    const saveProgram = (newData) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+            fetch('/api/program', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newData),
+            })
+                .then(res => res.json())
+                .then(data => console.log("Saved:", data))
+                .catch(err => console.error("Save failed:", err));
+        }, 1000); // 1 second debounce
+    };
+
     const handleEventChange = (dayIndex, eventIndex, field, value) => {
         const newProgram = [...program];
         // Ensure the event object exists
@@ -75,6 +103,7 @@ export default function Program() {
                 [field]: value
             };
             setProgram(newProgram);
+            saveProgram(newProgram);
         }
     };
 
@@ -86,6 +115,7 @@ export default function Program() {
             highlight: false
         });
         setProgram(newProgram);
+        saveProgram(newProgram);
     };
 
     const deleteEvent = (dayIndex, eventIndex) => {
@@ -93,6 +123,7 @@ export default function Program() {
             const newProgram = [...program];
             newProgram[dayIndex].events.splice(eventIndex, 1);
             setProgram(newProgram);
+            saveProgram(newProgram);
         }
     };
 

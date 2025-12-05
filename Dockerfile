@@ -1,37 +1,23 @@
-# Stage 1: Build the React application
-FROM node:20-alpine as build
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install dependencies
-RUN npm ci
+# Install dependencies (including express backend)
+COPY package*.json ./
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build the app
+# Build frontend
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Expose port 3000 (Backend + Frontend)
+EXPOSE 3000
 
-# Copy built assets from builder stage
-COPY --from=build /app/dist /usr/share/nginx/html
+# Set production environment
+ENV NODE_ENV=production
+ENV DATA_DIR=/app/data
 
-# Copy custom nginx config if needed (optional, using default here for simple SPA)
-# For React Router to work properly on refresh, we need a simple config
-RUN echo 'server { \
-    listen 80; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Start Node.js server
+CMD ["node", "server.cjs"]
