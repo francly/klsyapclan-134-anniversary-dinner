@@ -10,7 +10,7 @@ env:
   # CONFIGURE THESE VARIABLES AFTER CREATING AZURE RESOURCES
   ACR_NAME: "anniversaryreg" # Your Azure Container Registry name
   CONTAINER_APP_NAME: "anniversary-app" # Your Container App name
-  RESOURCE_GROUP: "RG-AnniversaryDinner"
+  RESOURCE_GROUP: "RG-Anniversary-EastUS"
   IMAGE_NAME: "anniversary-dinner"
 
 jobs:
