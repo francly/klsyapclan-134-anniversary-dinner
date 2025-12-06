@@ -69,7 +69,7 @@ app.post('/api/program', (req, res) => {
 if (process.env.NODE_ENV === 'production' || process.argv.includes('--production')) {
     app.use(express.static(path.join(__dirname, 'dist')));
 
-    app.get('*', (req, res) => {
+    app.use((req, res) => {
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     });
 }
