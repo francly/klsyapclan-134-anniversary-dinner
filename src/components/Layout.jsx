@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, CheckSquare, Calendar, Users, Menu, X, Sun, Moon, Clock } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Calendar, Users, Menu, X, Sun, Moon, Clock, HelpCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
@@ -11,6 +11,7 @@ const navItems = [
     { name: "活动流程", path: "/program", icon: Clock },
     { name: "时间轴", path: "/timeline", icon: Calendar },
     { name: "筹委会", path: "/team", icon: Users },
+    { name: "使用说明", path: "/help", icon: HelpCircle },
 ];
 
 export default function Layout({ children }) {

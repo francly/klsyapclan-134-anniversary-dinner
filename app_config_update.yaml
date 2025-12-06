@@ -1,0 +1,32 @@
+location: East US
+name: anniversary-app
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      allowInsecure: false
+      external: true
+      targetPort: 3000
+      transport: Auto
+      traffic:
+      - latestRevision: true
+        weight: 100
+  template:
+    containers:
+    - image: anniversaryreg.azurecr.io/anniversary-dinner:a0f90f69c6b7f3dd83310079ff52378c7b6dd0c7
+      name: anniversary-app
+      resources:
+        cpu: 0.5
+        memory: 1Gi
+      volumeMounts:
+      - volumeName: data-volume
+        mountPath: /app/data
+    scale:
+      minReplicas: 0
+      maxReplicas: 10
+    volumes:
+    - name: data-volume
+      storageName: anniversary-storage-link
+      storageType: AzureFile
+resourceGroup: RG-Anniversary-EastUS
+type: Microsoft.App/containerApps

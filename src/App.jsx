@@ -6,6 +6,7 @@ import Tasks from "./pages/Tasks";
 import Timeline from "./pages/Timeline";
 import Team from "./pages/Team";
 import Program from "./pages/Program";
+import Help from './pages/Help';
 import { TaskProvider } from "./context/TaskContext";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/timeline" element={<Layout><Timeline /></Layout>} />
             <Route path="/program" element={<Layout><Program /></Layout>} />
             <Route path="/team" element={<Layout><Team /></Layout>} />
+            <Route path="/help" element={<Layout><Help /></Layout>} />
           </Routes>
         </Router>
       </ThemeProvider>
