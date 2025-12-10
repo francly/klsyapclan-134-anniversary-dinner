@@ -14,10 +14,17 @@ import { format, differenceInDays } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useState } from "react";
 import DashboardCharts from "../components/DashboardCharts";
+import Modal from "../components/ui/Modal";
 
 export default function Dashboard() {
     const { tasks, getProjectStatus, generateTasks, clearAllTasks } = useTasks();
     const [dinnerDate, setDinnerDate] = useState("2025-12-31");
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        action: null
+    });
 
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(t => t.status === "done").length;
@@ -27,16 +34,35 @@ export default function Dashboard() {
     const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
     const projectStatus = getProjectStatus();
 
-    const handleGenerate = () => {
-        if (confirm("这将清空现有任务并生成新的演示数据，确定吗？")) {
-            generateTasks(dinnerDate);
+    const openConfirm = (title, message, action) => {
+        setConfirmModal({ isOpen: true, title, message, action });
+    };
+
+    const closeConfirm = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+    };
+
+    const handleConfirm = () => {
+        if (confirmModal.action) {
+            confirmModal.action();
         }
+        closeConfirm();
+    };
+
+    const handleGenerate = () => {
+        openConfirm(
+            "生成演示数据",
+            "这将清空所有现有任务，并根据选定的晚宴日期自动生成一套完整的演示任务。确定要继续吗？",
+            () => generateTasks(dinnerDate)
+        );
     };
 
     const handleClear = () => {
-        if (confirm("确定要清空所有任务吗？此操作无法撤销。")) {
-            clearAllTasks();
-        }
+        openConfirm(
+            "清空所有数据",
+            "确定要永久删除所有任务吗？此操作无法撤销。",
+            () => clearAllTasks()
+        );
     };
 
     return (
@@ -54,38 +80,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-
-
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="总任务"
-                    value={totalTasks}
-                    icon={LayoutDashboard}
-                    color="blue"
-                    trend="+2 本周"
-                />
-                <StatCard
-                    title="已完成"
-                    value={completedTasks}
-                    icon={CheckCircle2}
-                    color="green"
-                    trend={`${completionRate}% 完成率`}
-                />
-                <StatCard
-                    title="待处理"
-                    value={pendingTasks}
-                    icon={Clock}
-                    color="orange"
-                    trend="需要关注"
-                />
-                <StatCard
-                    title="已逾期"
-                    value={overdueTasks}
-                    icon={AlertCircle}
-                    color="red"
-                    trend="立即处理"
-                />
+                <StatCard title="总任务" value={totalTasks} icon={LayoutDashboard} color="blue" trend="+2 本周" />
+                <StatCard title="已完成" value={completedTasks} icon={CheckCircle2} color="green" trend={`${completionRate}% 完成率`} />
+                <StatCard title="待处理" value={pendingTasks} icon={Clock} color="orange" trend="需要关注" />
+                <StatCard title="已逾期" value={overdueTasks} icon={AlertCircle} color="red" trend="立即处理" />
             </div>
 
             {/* Visual Charts */}
@@ -169,6 +169,29 @@ export default function Dashboard() {
                     />
                 </div>
             </div>
+
+            {/* Confirmation Modal */}
+            <Modal isOpen={confirmModal.isOpen} onClose={closeConfirm} title={confirmModal.title}>
+                <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300">
+                        {confirmModal.message}
+                    </p>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={closeConfirm}
+                            className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-[#333] rounded-md transition-colors"
+                        >
+                            取消
+                        </button>
+                        <button
+                            onClick={handleConfirm}
+                            className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                        >
+                            确定执行
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
