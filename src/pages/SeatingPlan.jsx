@@ -281,7 +281,7 @@ export default function SeatingPlan() {
                         {isMixedMode ? (
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium mb-1">席位组合 (自动计算总人数)</label>
-                                {formData.seats.map((seat, index) => (
+                                {(formData.seats || []).map((seat, index) => (
                                     <div key={index} className="flex gap-2 items-center">
                                         <div className="flex-1">
                                             <select
