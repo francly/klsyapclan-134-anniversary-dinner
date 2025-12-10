@@ -90,10 +90,14 @@ app.get('/api/tables', (req, res) => {
     if (fs.existsSync(TABLES_FILE)) {
         try {
             const data = fs.readFileSync(TABLES_FILE, 'utf8');
+            if (!data.trim()) {
+                return res.json([]);
+            }
             res.json(JSON.parse(data));
         } catch (err) {
             console.error('Error reading tables file:', err);
-            res.status(500).json({ error: 'Failed to read tables' });
+            // Recover from corrupt file by returning empty array
+            res.json([]);
         }
     } else {
         res.json([]);
