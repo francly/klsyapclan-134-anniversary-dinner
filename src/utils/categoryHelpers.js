@@ -14,18 +14,22 @@ export const CATEGORY_NAMES = {
  */
 export const getCategoryGroup = (categoryName) => {
     if (!categoryName) return CATEGORY_NAMES.OTHER;
+    if (!CATEGORY_GROUPS) return CATEGORY_NAMES.OTHER; // Safety check
 
-    // Check specific groups first
-    if (CATEGORY_GROUPS["属会 (Category A)"].includes(categoryName)) {
+    // Check specific groups first (Use optional chaining)
+    if (CATEGORY_GROUPS["属会 (Category A)"]?.includes(categoryName)) {
         return CATEGORY_NAMES.AFFILIATE;
     }
-    if (CATEGORY_GROUPS["其他社团 (Category B)"].includes(categoryName)) {
+    if (CATEGORY_GROUPS["其他社团 (Category B)"]?.includes(categoryName)) {
         return CATEGORY_NAMES.ASSOCIATION;
     }
 
-    // Fallback: Check for keywords if it's a custom input not in the list
-    if (categoryName.includes("属会") || categoryName.includes("宗祠") || categoryName.includes("宗亲")) return CATEGORY_NAMES.AFFILIATE;
-    if (categoryName.includes("会馆") || categoryName.includes("社团")) return CATEGORY_NAMES.ASSOCIATION;
+    // Safety: Ensure it's a string before calling string methods
+    const catStr = String(categoryName);
+
+    // Fallback: Check for keywords
+    if (catStr.includes("属会") || catStr.includes("宗祠") || catStr.includes("宗亲")) return CATEGORY_NAMES.AFFILIATE;
+    if (catStr.includes("会馆") || catStr.includes("社团")) return CATEGORY_NAMES.ASSOCIATION;
 
     return CATEGORY_NAMES.OTHER;
 };
