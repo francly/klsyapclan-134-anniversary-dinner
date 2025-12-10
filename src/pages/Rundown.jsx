@@ -86,6 +86,16 @@ export default function Rundown() {
         saveRundown(newRundown);
     };
 
+    const handleDayChange = (dayIndex, field, value) => {
+        const newRundown = [...rundown];
+        newRundown[dayIndex] = {
+            ...newRundown[dayIndex],
+            [field]: value
+        };
+        setRundown(newRundown);
+        saveRundown(newRundown);
+    };
+
     const addSlot = (dayIndex) => {
         const newRundown = [...rundown];
         const newId = Math.max(...newRundown.flatMap(d => d.slots.map(s => s.id)), 0) + 1;
@@ -145,12 +155,33 @@ export default function Rundown() {
                 <div className="space-y-8">
                     {rundown.map((day, dayIndex) => (
                         <div key={dayIndex} className="bg-white dark:bg-[#1f1f1f] rounded-xl shadow-sm border border-gray-100 dark:border-[#2d2d2d] overflow-hidden">
-                            {/* Day Header */}
-                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-xl">
-                                <h2 className="text-2xl font-bold">{day.day}</h2>
-                                <p className="text-blue-100 text-sm mt-1">
-                                    {day.date} • 活动时间: {day.timeRange}
-                                </p>
+                            {/* Day Header - Editable */}
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-t-xl">
+                                <input
+                                    type="text"
+                                    value={day.day}
+                                    onChange={(e) => handleDayChange(dayIndex, 'day', e.target.value)}
+                                    className="text-2xl font-bold text-white bg-transparent border-b border-transparent hover:border-white/30 focus:border-white focus:outline-none w-full mb-1 transition-colors placeholder-blue-200"
+                                    placeholder="输入天数标题 (例如: 第一天...)"
+                                />
+                                <div className="flex items-center gap-2 text-blue-100 text-sm mt-1">
+                                    <input
+                                        type="text"
+                                        value={day.date}
+                                        onChange={(e) => handleDayChange(dayIndex, 'date', e.target.value)}
+                                        className="bg-transparent border-b border-transparent hover:border-white/30 focus:border-white focus:outline-none w-28 text-center transition-colors"
+                                        placeholder="日期"
+                                    />
+                                    <span>•</span>
+                                    <span>活动时间:</span>
+                                    <input
+                                        type="text"
+                                        value={day.timeRange}
+                                        onChange={(e) => handleDayChange(dayIndex, 'timeRange', e.target.value)}
+                                        className="bg-transparent border-b border-transparent hover:border-white/30 focus:border-white focus:outline-none w-32 text-center transition-colors"
+                                        placeholder="09:00 - 22:00"
+                                    />
+                                </div>
                             </div>
 
                             {/* Table */}
