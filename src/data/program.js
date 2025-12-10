@@ -1,6 +1,6 @@
 export const programData = [
     {
-        date: "2026-04-24",
+        date: "2025-11-13",
         events: [
             { time: "12:00", title: "登入酒店" },
             { time: "18:30", title: "酒店集合" },
@@ -9,7 +9,7 @@ export const programData = [
         ]
     },
     {
-        date: "2026-04-25",
+        date: "2025-11-14",
         events: [
             { time: "06:30", title: "早餐" },
             { time: "08:00", title: "酒店集合/出发" },
@@ -24,7 +24,7 @@ export const programData = [
         ]
     },
     {
-        date: "2026-04-26",
+        date: "2025-11-15",
         events: [
             { time: "07:30", title: "早餐" },
             { time: "09:00", title: "中青前往机场 / 欢送嘉宾" },
