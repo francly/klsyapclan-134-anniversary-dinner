@@ -174,7 +174,7 @@ export default function SeatingPlan() {
                     for (let idx = 0; idx < numbers.length; idx++) {
                         newTables.push({
                             id: Date.now() + Math.random(), // Unique ID
-                            name: name.trim(),
+                            name: String(numbers[idx]), // Store table number as name
                             category: name.trim(),
                             pax: paxPerTable + (idx < remainder ? 1 : 0),
                             tableNumber: numbers[idx],
@@ -187,7 +187,7 @@ export default function SeatingPlan() {
                 } else {
                     newTables.push({
                         id: Date.now() + Math.random(), // Unique ID
-                        name: name.trim(),
+                        name: tableNumbers.trim(), // Store table number as name
                         category: name.trim(),
                         pax: paxNum,
                         tableNumber: parseInt(tableNumbers.trim()),
@@ -317,7 +317,7 @@ export default function SeatingPlan() {
                     for (let idx = 0; idx < numbers.length; idx++) {
                         newTables.push({
                             id: Date.now() + Math.random(),
-                            name: row.name,
+                            name: String(numbers[idx]), // Store table number as name
                             category: row.name,
                             pax: paxPerTable + (idx < remainder ? 1 : 0),
                             tableNumber: numbers[idx],
@@ -330,7 +330,7 @@ export default function SeatingPlan() {
                 } else {
                     newTables.push({
                         id: Date.now() + Math.random(),
-                        name: row.name,
+                        name: row.tableNumbers, // Store table number as name
                         category: row.name,
                         pax: row.pax,
                         tableNumber: parseInt(row.tableNumbers),
