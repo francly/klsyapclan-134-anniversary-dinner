@@ -96,21 +96,17 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                     </div>
                 )}
 
-                {/* Center Number */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                    <span className={`text-4xl font-bold bg-transparent ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
+                {/* Center Text - Table Name */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-2">
+                    <span className={`text-2xl font-bold bg-transparent text-center leading-tight ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
                         }`}>
-                        {table.tableNumber}
+                        {table.name}
                     </span>
                 </div>
             </div>
 
-            {/* Table Name */}
+            {/* Category and Details */}
             <div className="text-center w-full px-1 flex flex-col items-center mb-1">
-                <h3 className="font-bold text-base text-gray-900 truncate w-full bg-transparent" title={table.name}>
-                    {table.name}
-                </h3>
-
                 {table.seats && table.seats.length > 1 ? (
                     <div className="w-full max-h-16 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
                         {table.seats.map((seat, idx) => (
