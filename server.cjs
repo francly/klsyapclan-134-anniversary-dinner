@@ -11,6 +11,10 @@ const DATA_FILE = path.join(DATA_DIR, 'program.json');
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    next();
+});
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -18,7 +22,7 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // Initial Data (Fallback)
-const initialProgramData = [ /* ... existing program data ... */ ];
+const initialProgramData = [ /* ... existing program data ... */];
 
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
@@ -71,7 +75,7 @@ app.post('/api/tasks', (req, res) => {
         const newTasks = req.body;
         // Verify it's an array
         if (!Array.isArray(newTasks)) {
-             return res.status(400).json({ error: 'Tasks must be an array' });
+            return res.status(400).json({ error: 'Tasks must be an array' });
         }
         fs.writeFileSync(TASKS_FILE, JSON.stringify(newTasks, null, 2));
         res.json({ success: true, message: 'Tasks saved successfully' });

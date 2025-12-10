@@ -13,7 +13,8 @@ export function TaskProvider({ children }) {
 
     // Load tasks from server on mount
     useEffect(() => {
-        fetch('/api/tasks')
+        // Add timestamp to prevent caching
+        fetch(`/api/tasks?_=${new Date().getTime()}`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
