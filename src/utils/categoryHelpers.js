@@ -1,4 +1,4 @@
-import { CATEGORY_GROUPS } from '../data/categories';
+import { CATEGORY_GROUPS } from '../data/categories.js';
 
 export const CATEGORY_NAMES = {
     AFFILIATE: "属会宗亲会",
