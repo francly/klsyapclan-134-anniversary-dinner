@@ -4,6 +4,7 @@ import { useTables } from "../context/TableContext";
 import TableCard from "../components/TableCard";
 import Modal from "../components/ui/Modal";
 import { CATEGORY_GROUPS } from "../data/categories";
+import { getCategoryGroup, getGroupStyles, CATEGORY_NAMES } from "../utils/categoryHelpers";
 
 export default function SeatingPlan() {
     const { tables, loading, error, addTable, updateTable, deleteTable } = useTables();

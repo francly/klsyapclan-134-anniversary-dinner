@@ -1,4 +1,5 @@
 import { User, Users, Pencil, Trash2 } from "lucide-react";
+import { getCategoryGroup, getGroupStyles } from "../utils/categoryHelpers";
 
 export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
     // Capacity logic (default 10)
