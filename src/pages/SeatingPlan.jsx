@@ -178,6 +178,7 @@ export default function SeatingPlan() {
                         <TableCard
                             key={table.id}
                             table={table}
+                            onUpdate={updateTable}
                             onEdit={handleEditClick}
                             onDelete={deleteTable}
                         />
@@ -203,10 +204,17 @@ export default function SeatingPlan() {
                     <div className="grid grid-cols-1 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">类别 (选择或输入)</label>
-                            <div className="relative">
+                            <div className="space-y-2">
                                 <select
-                                    value={formData.category}
-                                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                    value={Object.values(CATEGORY_GROUPS).flat().includes(formData.category) ? formData.category : "Custom"}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === "Custom") {
+                                            setFormData({ ...formData, category: "" }); // Clear for input
+                                        } else {
+                                            setFormData({ ...formData, category: val });
+                                        }
+                                    }}
                                     className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
                                 >
                                     {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
@@ -216,10 +224,19 @@ export default function SeatingPlan() {
                                             ))}
                                         </optgroup>
                                     ))}
-                                    <option value="Custom">自定义 (Custom)...</option>
+                                    <option value="Custom">自定义 / 混合 (Custom/Mixed)...</option>
                                 </select>
+
+                                {(!Object.values(CATEGORY_GROUPS).flat().includes(formData.category) || formData.category === "") && (
+                                    <input
+                                        type="text"
+                                        placeholder="输入自定义类别或混合说明..."
+                                        value={formData.category}
+                                        onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                        className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] bg-gray-50 dark:bg-[#2a2a2a]"
+                                    />
+                                )}
                             </div>
-                            {/* Simple Logic: If user selects Custom, or types something else? For now select only is safest */}
                         </div>
 
                         <div>

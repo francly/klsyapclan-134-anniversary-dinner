@@ -1,6 +1,6 @@
 import { User, Users, Pencil, Trash2 } from "lucide-react";
 
-export default function TableCard({ table, onEdit, onDelete }) {
+export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
     // Capacity logic (default 10)
     const capacity = 10;
     const currentPax = parseInt(table.pax) || 0;
@@ -28,44 +28,42 @@ export default function TableCard({ table, onEdit, onDelete }) {
         >
 
             {/* Action Buttons (Hover) */}
-            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 flex gap-1 z-20">
                 <button
                     onClick={(e) => { e.stopPropagation(); onEdit(table); }}
-                    className="p-1 text-gray-400 hover:text-blue-600 bg-white rounded-full shadow-sm hover:shadow"
+                    className="p-1.5 text-gray-500 hover:text-blue-600 bg-white/90 rounded-full shadow-sm hover:shadow transition-colors"
                     title="Edit"
                 >
-                    <Pencil size={12} />
-                </button>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(table.id); }}
-                    className="p-1 text-gray-400 hover:text-red-500 bg-white rounded-full shadow-sm hover:shadow"
-                    title="Delete"
-                >
-                    <Trash2 size={12} />
+                    <Pencil size={14} />
                 </button>
             </div>
 
             {/* Main Circle with Water Level/Progress */}
-            <div className="relative w-24 h-24 mb-3">
-                {/* Background Circle */}
-                <div className="absolute inset-0 rounded-full border-4 border-gray-200 opacity-30"></div>
+            <div className="relative w-24 h-24 mb-3 rounded-full overflow-hidden border-4 border-gray-100 bg-white">
 
-                {/* Progress Circle (SVG) */}
-                <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                    <circle
-                        cx="50%" cy="50%" r="40"
-                        fill="transparent"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        strokeDasharray="251" // 2 * pi * 40
-                        strokeDashoffset={251 - (251 * fillPercentage) / 100}
-                        className={`transition-all duration-500 ${isFull ? 'text-red-500' : getCircleColor(table.category)}`}
-                    />
-                </svg>
+                {/* Wave Container */}
+                <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-in-out"
+                    style={{ height: `${fillPercentage}%` }}>
+                    <div className={`w-full h-full opacity-80 ${isFull ? 'bg-red-500' :
+                        table.category.includes('Affiliate') || table.category.includes('属会') ? 'bg-blue-500' :
+                            table.category.includes('Association') || table.category.includes('社团') ? 'bg-green-500' :
+                                'bg-gray-400'
+                        }`}></div>
+                    {/* Wave SVG Overlay (Simplified) */}
+                    {/* Using a CSS mask or just a simple block for now to ensure robustness, or a specialized wave SVG */}
+                </div>
+
+                {/* Wave Animation Element (Optional Polish: CSS Keyframes would be needed defined in index.css) 
+                     For now, using a solid fill transition which is robust and "water-like" level.
+                     To match the image EXACTLY (wavy top), I'd need a complex SVG path.
+                     I'll stick to a "filling level" first to ensure it works.
+                 */}
 
                 {/* Center Number */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-700">{table.tableNumber}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                    <span className={`text-2xl font-bold ${fillPercentage > 50 ? 'text-white' : 'text-gray-700'}`}>
+                        {table.tableNumber}
+                    </span>
                 </div>
             </div>
 
@@ -79,10 +77,24 @@ export default function TableCard({ table, onEdit, onDelete }) {
                 </p>
             </div>
 
-            {/* Pax Indicator Pill */}
-            <div className={`mt-2 flex items-center space-x-1 text-xs font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}>
-                <Users size={10} />
-                <span>{currentPax} / {capacity}</span>
+            {/* Pax Controls */}
+            <div className="mt-2 flex items-center gap-2 z-20">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onUpdate({ ...table, pax: Math.max(0, currentPax - 1) }); }}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold"
+                >
+                    -
+                </button>
+                <div className={`flex items-center space-x-1 text-xs font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}>
+                    <Users size={12} />
+                    <span>{currentPax}</span>
+                </div>
+                <button
+                    onClick={(e) => { e.stopPropagation(); onUpdate({ ...table, pax: Math.min(20, currentPax + 1) }); }}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold"
+                >
+                    +
+                </button>
             </div>
         </div>
     );
