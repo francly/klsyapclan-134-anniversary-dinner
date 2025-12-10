@@ -117,7 +117,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                         ))}
                     </div>
                 ) : (
-                    <p className={`text-sm font-semibold line-clamp-2 w-full ${styles.text} bg-transparent mt-1 min-h-[2.5rem] flex items-center justify-center`} title={table.category}>
+                    <p className={`text-sm font-semibold line-clamp-3 w-full ${styles.text} bg-transparent mt-1 min-h-[3rem] flex items-center justify-center`} title={table.category}>
                         {getDisplayCategory(table.category)}
                     </p>
                 )}
@@ -127,26 +127,6 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                         {table.notes}
                     </p>
                 )}
-            </div>
-
-            {/* Pax Controls */}
-            <div className="mt-1 flex items-center gap-2 z-20">
-                <button
-                    onClick={(e) => { e.stopPropagation(); onUpdate({ ...table, pax: Math.max(0, currentPax - 1) }); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold"
-                >
-                    -
-                </button>
-                <div className={`flex items-center space-x-1 text-sm font-bold px-3 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}>
-                    <Users size={14} />
-                    <span>{currentPax}</span>
-                </div>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onUpdate({ ...table, pax: Math.min(20, currentPax + 1) }); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold"
-                >
-                    +
-                </button>
             </div>
         </div>
     );
