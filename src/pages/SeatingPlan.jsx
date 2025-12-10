@@ -177,32 +177,29 @@ export default function SeatingPlan() {
                     {/* Helper to group tables */}
                     {(() => {
                         const groups = {
-                            "属会 (Affiliates)": [],
-                            "社团 (Associations)": [],
-                            "VIP / 嘉宾": [],
-                            "个人 / 其他 (Others)": []
+                            [CATEGORY_NAMES.AFFILIATE]: [],
+                            [CATEGORY_NAMES.ASSOCIATION]: [],
+                            [CATEGORY_NAMES.OTHER]: []
                         };
 
                         filteredTables.forEach(table => {
-                            const cat = table.category || "";
-                            if (cat.includes("Affiliate") || cat.includes("属会")) groups["属会 (Affiliates)"].push(table);
-                            else if (cat.includes("Association") || cat.includes("社团")) groups["社团 (Associations)"].push(table);
-                            else if (cat.includes("VIP")) groups["VIP / 嘉宾"].push(table);
-                            else groups["个人 / 其他 (Others)"].push(table);
+                            const groupName = getCategoryGroup(table.category);
+                            if (groups[groupName]) {
+                                groups[groupName].push(table);
+                            } else {
+                                // Fallback for safety
+                                groups[CATEGORY_NAMES.OTHER].push(table);
+                            }
                         });
 
                         return Object.entries(groups).map(([groupName, groupTables]) => {
                             if (groupTables.length === 0) return null;
 
-                            // Determine Header Style
-                            let headerColor = "text-gray-700 border-gray-200";
-                            if (groupName.includes("属会")) headerColor = "text-cyan-800 border-cyan-200 bg-cyan-50";
-                            if (groupName.includes("社团")) headerColor = "text-emerald-800 border-emerald-200 bg-emerald-50";
-                            if (groupName.includes("VIP")) headerColor = "text-purple-800 border-purple-200 bg-purple-50";
+                            const styles = getGroupStyles(groupName);
 
                             return (
                                 <div key={groupName} className="animate-fade-in">
-                                    <h2 className={`text-lg font-bold mb-4 px-4 py-2 rounded-lg border inline-block ${headerColor}`}>
+                                    <h2 className={`text-lg font-bold mb-4 px-4 py-2 rounded-lg border inline-block ${styles.headerColor}`}>
                                         {groupName} <span className="text-sm opacity-60 ml-2">({groupTables.length} 桌)</span>
                                     </h2>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">

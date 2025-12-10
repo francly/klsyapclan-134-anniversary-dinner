@@ -14,24 +14,18 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
         return "bg-blue-500"; // 5-9 Blue
     };
 
-    // Category Color Mapping (Border & Text)
-    const getCategoryStyles = (category) => {
-        const cat = category || "";
-        if (cat.includes("Affiliate") || cat.includes("属会")) return { border: "border-cyan-400", text: "text-cyan-700", bg: "bg-cyan-50" };
-        if (cat.includes("Association") || cat.includes("社团")) return { border: "border-emerald-400", text: "text-emerald-700", bg: "bg-emerald-50" };
-        if (cat.includes("VIP")) return { border: "border-purple-400", text: "text-purple-700", bg: "bg-purple-50" };
-        return { border: "border-gray-300", text: "text-gray-700", bg: "bg-gray-50" }; // Default
-    };
-
-    const styles = getCategoryStyles(table.category);
+    // Use centralized group logic for consistent styling
+    const groupName = getCategoryGroup(table.category);
+    const styles = getGroupStyles(groupName);
 
     // Localization Helper
     const getDisplayCategory = (cat) => {
         if (!cat) return "未分类";
+        // If it's a known short code, expand it (optional), 
+        // but mostly we just return specific Chinese category name.
         if (cat === "Affiliate") return "属会";
         if (cat === "Association") return "社团";
-        if (cat === "Individual") return "个人";
-        return cat; // Fallback to custom text
+        return cat;
     };
 
     return (
