@@ -107,11 +107,11 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
 
             {/* Table Name */}
             <div className="text-center w-full px-1 flex flex-col items-center mb-1">
-                <h3 className="font-bold text-base truncate w-full bg-transparent" title={table.name}>
+                <h3 className="font-bold text-base text-gray-900 truncate w-full bg-transparent" title={table.name}>
                     {table.name}
                 </h3>
 
-                {table.seats && table.seats.length > 1 && (
+                {table.seats && table.seats.length > 1 ? (
                     <div className="w-full max-h-16 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
                         {table.seats.map((seat, idx) => (
                             <div key={idx} className="flex justify-between w-full px-2 text-xs text-gray-600 font-medium">
@@ -120,6 +120,10 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                             </div>
                         ))}
                     </div>
+                ) : (
+                    <p className={`text-xs font-medium truncate w-full ${styles.text} bg-transparent mt-0.5`} title={table.category}>
+                        {getDisplayCategory(table.category)}
+                    </p>
                 )}
 
                 {table.notes && (
