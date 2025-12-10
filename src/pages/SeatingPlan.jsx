@@ -38,6 +38,8 @@ export default function SeatingPlan() {
     const [editMode, setEditMode] = useState(false);
     const [currentTableId, setCurrentTableId] = useState(null);
     const [isMixedMode, setIsMixedMode] = useState(false);
+    const [isSmartImportOpen, setIsSmartImportOpen] = useState(false);
+    const [pasteData, setPasteData] = useState('');
     const [formData, setFormData] = useState({
         name: "",
         category: "属会 (Category A)",
@@ -145,12 +147,14 @@ export default function SeatingPlan() {
         setIsModalOpen(false);
     };
 
-    // Batch Import Handler
+    // Batch Import Handler (FIXED with error handling)
     const handleBatchImport = async () => {
         if (!window.confirm('确定要批量导入22个组织的桌次数据吗？\n\n这将添加24张新桌次。')) return;
 
         const lines = IMPORT_DATA.trim().split('\n');
         let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
 
         for (const line of lines) {
             const parts = line.split('\t');
@@ -159,42 +163,52 @@ export default function SeatingPlan() {
             const [name, pax, tableNumbers] = parts;
             const paxNum = parseInt(pax) || 2;
 
-            // Handle multiple table numbers (e.g., "3/4/5/6")
-            if (tableNumbers.includes('/')) {
-                const numbers = tableNumbers.split('/').map(n => parseInt(n.trim()));
-                const paxPerTable = Math.floor(paxNum / numbers.length);
-                const remainder = paxNum % numbers.length;
+            try {
+                // Handle multiple table numbers (e.g., "3/4/5/6")
+                if (tableNumbers.includes('/')) {
+                    const numbers = tableNumbers.split('/').map(n => parseInt(n.trim()));
+                    const paxPerTable = Math.floor(paxNum / numbers.length);
+                    const remainder = paxNum % numbers.length;
 
-                for (let idx = 0; idx < numbers.length; idx++) {
+                    for (let idx = 0; idx < numbers.length; idx++) {
+                        await addTable({
+                            name: name.trim(),
+                            category: name.trim(),
+                            pax: paxPerTable + (idx < remainder ? 1 : 0),
+                            tableNumber: numbers[idx],
+                            region: 'Main Hall',
+                            notes: '',
+                            seats: []
+                        });
+                        successCount++;
+                    }
+                } else {
                     await addTable({
                         name: name.trim(),
                         category: name.trim(),
-                        pax: paxPerTable + (idx < remainder ? 1 : 0),
-                        tableNumber: numbers[idx],
+                        pax: paxNum,
+                        tableNumber: parseInt(tableNumbers.trim()),
                         region: 'Main Hall',
                         notes: '',
                         seats: []
                     });
                     successCount++;
                 }
-            } else {
-                await addTable({
-                    name: name.trim(),
-                    category: name.trim(),
-                    pax: paxNum,
-                    tableNumber: parseInt(tableNumbers.trim()),
-                    region: 'Main Hall',
-                    notes: '',
-                    seats: []
-                });
-                successCount++;
+            } catch (error) {
+                errorCount++;
+                errors.push(`${name.trim()}: ${error.message}`);
+                console.error('Import error:', error);
             }
         }
 
-        alert(`批量导入完成！\n成功添加 ${successCount} 张桌次。`);
+        if (errorCount > 0) {
+            alert(`批量导入完成！\n成功: ${successCount} 张\n失败: ${errorCount} 张\n\n错误:\n${errors.join('\n')}`);
+        } else {
+            alert(`批量导入完成！\n成功添加 ${successCount} 张桌次。`);
+        }
     };
 
-    // Clear All Handler (Password Protected)
+    // Clear All Handler (FIXED - batch delete with Promise.all)
     const handleClearAll = async () => {
         const password = window.prompt('⚠️ 危险操作！\n\n请输入密码以清除所有桌次数据：');
 
@@ -203,15 +217,105 @@ export default function SeatingPlan() {
             return;
         }
 
-        if (!window.confirm('确定要删除所有桌次吗？\n\n此操作不可恢复！')) return;
+        const currentCount = tables.length;
+        if (!window.confirm(`确定要删除所有 ${currentCount} 张桌次吗？\n\n此操作不可恢复！`)) return;
 
-        let deleteCount = 0;
-        for (const table of tables) {
-            await deleteTable(table.id);
-            deleteCount++;
+        try {
+            // Delete all tables in parallel using Promise.all
+            await Promise.all(tables.map(table => deleteTable(table.id)));
+            alert(`已清除 ${currentCount} 张桌次。`);
+        } catch (error) {
+            alert('删除失败: ' + error.message);
+            console.error('Delete error:', error);
+        }
+    };
+
+    // Smart Paste Import Handler
+    const handleSmartImport = () => {
+        if (!pasteData.trim()) {
+            alert('请粘贴数据！');
+            return;
         }
 
-        alert(`已清除 ${deleteCount} 张桌次。`);
+        const lines = pasteData.trim().split('\n').filter(line => line.trim());
+        const parseResult = [];
+        let skipFirst = false;
+
+        // Check if first line is header
+        if (lines[0] && (lines[0].includes('属会') || lines[0].includes('PAX') || lines[0].includes('TABLE'))) {
+            skipFirst = true;
+        }
+
+        for (let i = skipFirst ? 1 : 0; i < lines.length; i++) {
+            const line = lines[i];
+            // Support both tab and multiple spaces as delimiter
+            const parts = line.split(/\t+| {2,}/).filter(p => p.trim());
+
+            if (parts.length >= 3) {
+                const name = parts[0].trim();
+                const pax = parseInt(parts[1]) || 2;
+                const tableNumbers = parts[2].trim();
+
+                parseResult.push({ name, pax, tableNumbers });
+            }
+        }
+
+        if (parseResult.length === 0) {
+            alert('未能识别数据！\n请确保格式正确：\n名称 PAX 桌号');
+            return;
+        }
+
+        // Confirm import
+        if (!window.confirm(`识别到 ${parseResult.length} 行数据\n\n确定要导入吗？`)) return;
+
+        // Import
+        importParsedData(parseResult);
+    };
+
+    const importParsedData = async (data) => {
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const row of data) {
+            try {
+                if (row.tableNumbers.includes('/')) {
+                    const numbers = row.tableNumbers.split('/').map(n => parseInt(n.trim()));
+                    const paxPerTable = Math.floor(row.pax / numbers.length);
+                    const remainder = row.pax % numbers.length;
+
+                    for (let idx = 0; idx < numbers.length; idx++) {
+                        await addTable({
+                            name: row.name,
+                            category: row.name,
+                            pax: paxPerTable + (idx < remainder ? 1 : 0),
+                            tableNumber: numbers[idx],
+                            region: 'Main Hall',
+                            notes: '',
+                            seats: []
+                        });
+                        successCount++;
+                    }
+                } else {
+                    await addTable({
+                        name: row.name,
+                        category: row.name,
+                        pax: row.pax,
+                        tableNumber: parseInt(row.tableNumbers),
+                        region: 'Main Hall',
+                        notes: '',
+                        seats: []
+                    });
+                    successCount++;
+                }
+            } catch (error) {
+                errorCount++;
+                console.error('Import error:', error);
+            }
+        }
+
+        alert(`智能导入完成！\n成功: ${successCount} 张\n失败: ${errorCount} 张`);
+        setIsSmartImportOpen(false);
+        setPasteData('');
     };
 
     if (loading) return <div className="p-10 text-center">正在加载席位数据...</div>;
@@ -245,6 +349,13 @@ export default function SeatingPlan() {
                     >
                         <Plus className="w-4 h-4" />
                         批量导入
+                    </button>
+                    <button
+                        onClick={() => setIsSmartImportOpen(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        智能导入
                     </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
@@ -346,6 +457,41 @@ export default function SeatingPlan() {
                     })()}
                 </div>
             )}
+
+
+            {/*智能导入 Modal */}
+            <Modal isOpen={isSmartImportOpen} onClose={() => { setIsSmartImportOpen(false); setPasteData(''); }} title="智能批量导入">
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">粘贴表格数据</label>
+                        <p className="text-xs text-gray-500 mb-2">
+                            支持格式：名称 PAX 桌号 (用Tab或空格分隔)<br />
+                            示例：檳城南陽堂葉氏宗祠  10  1
+                        </p>
+                        <textarea
+                            value={pasteData}
+                            onChange={(e) => setPasteData(e.target.value)}
+                            placeholder="粘贴数据..."
+                            rows={15}
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-[#1f1f1f] dark:border-[#2d2d2d] font-mono text-sm"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={() => { setIsSmartImportOpen(false); setPasteData(''); }}
+                            className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors"
+                        >
+                            取消
+                        </button>
+                        <button
+                            onClick={handleSmartImport}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                        >
+                            识别并导入
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Add/Edit Table Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editMode ? "编辑桌次" : "添加新桌次"}>
