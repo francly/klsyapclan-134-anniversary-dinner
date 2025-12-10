@@ -10,19 +10,25 @@ export default function Rundown() {
 
     // Fetch rundown data
     useEffect(() => {
+        console.log('Fetching rundown data...');
+        console.log('initialRundownData:', initialRundownData);
         fetch('/api/rundown')
             .then(res => res.json())
             .then(data => {
+                console.log('API response:', data);
                 // Use fallback data if API returns empty array
                 if (!data || data.length === 0) {
+                    console.log('Using fallback data');
                     setRundown(initialRundownData);
                 } else {
+                    console.log('Using API data');
                     setRundown(data);
                 }
                 setIsLoading(false);
             })
             .catch(err => {
                 console.error("Failed to load rundown data", err);
+                console.log('Using fallback data due to error');
                 setIsLoading(false);
                 setRundown(initialRundownData);
             });
@@ -109,6 +115,9 @@ export default function Rundown() {
     };
 
     if (isLoading) return <div className="p-10 text-center">正在加载活动执行清单...</div>;
+
+    console.log('Rendering with rundown:', rundown);
+    console.log('Rundown length:', rundown.length);
 
     return (
         <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#111111] transition-colors p-4 md:p-8">
