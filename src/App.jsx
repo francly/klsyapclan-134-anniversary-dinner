@@ -10,23 +10,26 @@ import Help from './pages/Help';
 import { TaskProvider } from "./context/TaskContext";
 
 import SeatingPlan from "./pages/SeatingPlan";
+import { TableProvider } from "./context/TableContext";
 
 export default function App() {
   return (
     <TaskProvider>
-      <ThemeProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
-            <Route path="/timeline" element={<Layout><Timeline /></Layout>} />
-            <Route path="/program" element={<Layout><Program /></Layout>} />
-            <Route path="/team" element={<Layout><Team /></Layout>} />
-            <Route path="/seating" element={<Layout><SeatingPlan /></Layout>} />
-            <Route path="/help" element={<Layout><Help /></Layout>} />
-          </Routes>
-        </Router>
-      </ThemeProvider>
+      <TableProvider>
+        <ThemeProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Layout><Dashboard /></Layout>} />
+              <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
+              <Route path="/timeline" element={<Layout><Timeline /></Layout>} />
+              <Route path="/program" element={<Layout><Program /></Layout>} />
+              <Route path="/team" element={<Layout><Team /></Layout>} />
+              <Route path="/seating" element={<Layout><SeatingPlan /></Layout>} />
+              <Route path="/help" element={<Layout><Help /></Layout>} />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </TableProvider>
     </TaskProvider>
   );
 }
