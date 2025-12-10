@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer utilities {
   .wave-fill {
@@ -8,5 +6,3 @@
     overflow: hidden;
   }
 }
-
-/* Optional: Add a wave keyframe if desired later */
