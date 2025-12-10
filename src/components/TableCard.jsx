@@ -100,7 +100,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-2">
                     <span className={`text-2xl font-bold bg-transparent text-center leading-tight ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
                         }`}>
-                        {table.name}
+                        {table.tableNumber}
                     </span>
                 </div>
             </div>

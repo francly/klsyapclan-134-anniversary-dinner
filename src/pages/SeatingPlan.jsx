@@ -228,7 +228,7 @@ export default function SeatingPlan() {
         }
     };
 
-    // Clear All Handler (FIXED - batch delete with Promise.all)
+    // Clear All Handler (FIXED - direct save empty array)
     const handleClearAll = async () => {
         const password = window.prompt('⚠️ 危险操作！\n\n请输入密码以清除所有桌次数据：');
 
@@ -241,9 +241,19 @@ export default function SeatingPlan() {
         if (!window.confirm(`确定要删除所有 ${currentCount} 张桌次吗？\n\n此操作不可恢复！`)) return;
 
         try {
-            // Delete all tables in parallel using Promise.all
-            await Promise.all(tables.map(table => deleteTable(table.id)));
+            // Save empty array directly to avoid race condition
+            const response = await fetch('/api/tables', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([]),
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
             alert(`已清除 ${currentCount} 张桌次。`);
+            window.location.reload();
         } catch (error) {
             alert('删除失败: ' + error.message);
             console.error('Delete error:', error);
