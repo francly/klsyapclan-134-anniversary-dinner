@@ -63,7 +63,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
             </div>
 
             {/* Main Circle with Water Level/Progress or Pie Chart */}
-            <div className="relative w-24 h-24 mb-3 rounded-full overflow-hidden border-4 border-gray-100 bg-white shadow-inner">
+            <div className="relative w-32 h-32 mb-2 shrink-0 rounded-full overflow-hidden border-4 border-gray-100 bg-white shadow-inner">
 
                 {table.seats && table.seats.length > 1 ? (
                     // PIE CHART MODE
@@ -71,20 +71,20 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                         className="w-full h-full opacity-80"
                         style={{
                             background: `conic-gradient(${(() => {
-                                    let currentDeg = 0;
-                                    const total = table.seats.reduce((sum, s) => sum + (parseInt(s.pax) || 0), 0);
-                                    if (total === 0) return '#e5e7eb 0% 100%'; // Gray if empty
+                                let currentDeg = 0;
+                                const total = table.seats.reduce((sum, s) => sum + (parseInt(s.pax) || 0), 0);
+                                if (total === 0) return '#e5e7eb 0% 100%'; // Gray if empty
 
-                                    return table.seats.map(s => {
-                                        const pax = parseInt(s.pax) || 0;
-                                        const group = getCategoryGroup(s.category);
-                                        const style = getGroupStyles(group);
-                                        const deg = (pax / total) * 360;
-                                        const segment = `${style.pieColor} ${currentDeg}deg ${currentDeg + deg}deg`;
-                                        currentDeg += deg;
-                                        return segment;
-                                    }).join(', ')
-                                })()
+                                return table.seats.map(s => {
+                                    const pax = parseInt(s.pax) || 0;
+                                    const group = getCategoryGroup(s.category);
+                                    const style = getGroupStyles(group);
+                                    const deg = (pax / total) * 360;
+                                    const segment = `${style.pieColor} ${currentDeg}deg ${currentDeg + deg}deg`;
+                                    currentDeg += deg;
+                                    return segment;
+                                }).join(', ')
+                            })()
                                 })`
                         }}
                     ></div>
@@ -98,7 +98,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
 
                 {/* Center Number */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                    <span className={`text-2xl font-bold bg-transparent ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
+                    <span className={`text-4xl font-bold bg-transparent ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
                         }`}>
                         {table.tableNumber}
                     </span>
@@ -106,24 +106,20 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
             </div>
 
             {/* Table Name */}
-            <div className="text-center w-full px-1 flex flex-col items-center">
-                <h3 className="font-bold text-sm truncate w-full bg-transparent" title={table.name}>
+            <div className="text-center w-full px-1 flex flex-col items-center mb-1">
+                <h3 className="font-bold text-base truncate w-full bg-transparent" title={table.name}>
                     {table.name}
                 </h3>
 
-                {table.seats && table.seats.length > 1 ? (
-                    <div className="w-full h-8 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
+                {table.seats && table.seats.length > 1 && (
+                    <div className="w-full max-h-16 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
                         {table.seats.map((seat, idx) => (
-                            <div key={idx} className="flex justify-between w-full px-1 text-[10px] text-gray-600">
+                            <div key={idx} className="flex justify-between w-full px-2 text-xs text-gray-600 font-medium">
                                 <span className="truncate flex-1 text-left mr-1" title={seat.category}>{seat.category}</span>
                                 <span className="font-bold">{seat.pax}</span>
                             </div>
                         ))}
                     </div>
-                ) : (
-                    <p className={`text-xs font-medium truncate w-full ${styles.text} bg-transparent`} title={table.category}>
-                        {getDisplayCategory(table.category)}
-                    </p>
                 )}
 
                 {table.notes && (
@@ -134,15 +130,15 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
             </div>
 
             {/* Pax Controls */}
-            <div className="mt-2 flex items-center gap-2 z-20">
+            <div className="mt-1 flex items-center gap-2 z-20">
                 <button
                     onClick={(e) => { e.stopPropagation(); onUpdate({ ...table, pax: Math.max(0, currentPax - 1) }); }}
                     className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold"
                 >
                     -
                 </button>
-                <div className={`flex items-center space-x-1 text-xs font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}>
-                    <Users size={12} />
+                <div className={`flex items-center space-x-1 text-sm font-bold px-3 py-1 rounded-full ${isFull ? 'bg-red-100 text-red-600' : 'bg-white/80 text-gray-600'}`}>
+                    <Users size={14} />
                     <span>{currentPax}</span>
                 </div>
                 <button
