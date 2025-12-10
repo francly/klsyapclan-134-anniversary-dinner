@@ -42,16 +42,18 @@ export default function Rundown() {
                 // Extract both member names and positions
                 const options = [];
                 data.forEach(dept => {
-                    dept.members.forEach(m => {
-                        // Add name
-                        if (m.name && !options.includes(m.name)) {
-                            options.push(m.name);
-                        }
-                        // Add position if exists
-                        if (m.position && !options.includes(m.position)) {
-                            options.push(m.position);
-                        }
-                    });
+                    // Add Role (Position)
+                    if (dept.role && !options.includes(dept.role)) {
+                        options.push(dept.role);
+                    }
+                    // Add Members (Strings)
+                    if (Array.isArray(dept.members)) {
+                        dept.members.forEach(m => {
+                            if (m && typeof m === 'string' && !options.includes(m)) {
+                                options.push(m);
+                            }
+                        });
+                    }
                 });
                 setCommitteeMembers(options.sort());
             })
