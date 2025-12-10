@@ -40,7 +40,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
     return (
         <div
             className={`relative group p-4 rounded-xl border-2 flex flex-col items-center justify-center shadow-sm transition-all hover:shadow-md cursor-pointer bg-white ${styles.border}`}
-            style={{ width: '160px', height: '220px' }}
+            style={{ width: '200px', height: '250px' }}
             onClick={() => onEdit(table)}
         >
 
@@ -117,7 +117,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                         ))}
                     </div>
                 ) : (
-                    <p className={`text-sm font-semibold line-clamp-3 w-full ${styles.text} bg-transparent mt-1 min-h-[3rem] flex items-center justify-center`} title={table.category}>
+                    <p className={`text-sm font-semibold line-clamp-4 w-full ${styles.text} bg-transparent mt-1 min-h-[4rem] flex items-center justify-center`} title={table.category}>
                         {getDisplayCategory(table.category)}
                     </p>
                 )}
