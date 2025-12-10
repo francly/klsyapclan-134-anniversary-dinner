@@ -85,6 +85,35 @@ app.post('/api/tasks', (req, res) => {
     }
 });
 
+// API Routes - Tables
+app.get('/api/tables', (req, res) => {
+    if (fs.existsSync(TABLES_FILE)) {
+        try {
+            const data = fs.readFileSync(TABLES_FILE, 'utf8');
+            res.json(JSON.parse(data));
+        } catch (err) {
+            console.error('Error reading tables file:', err);
+            res.status(500).json({ error: 'Failed to read tables' });
+        }
+    } else {
+        res.json([]);
+    }
+});
+
+app.post('/api/tables', (req, res) => {
+    try {
+        const newTables = req.body;
+        if (!Array.isArray(newTables)) {
+            return res.status(400).json({ error: 'Tables must be an array' });
+        }
+        fs.writeFileSync(TABLES_FILE, JSON.stringify(newTables, null, 2));
+        res.json({ success: true, message: 'Tables saved successfully' });
+    } catch (err) {
+        console.error('Error writing tables file:', err);
+        res.status(500).json({ error: 'Failed to save tables' });
+    }
+});
+
 // Serve Static Assets (Production)
 // In development, Vite handles this. This server is primarily for the compiled container.
 if (process.env.NODE_ENV === 'production' || process.argv.includes('--production')) {
