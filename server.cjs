@@ -25,6 +25,7 @@ if (!fs.existsSync(DATA_DIR)) {
 const initialProgramData = [ /* ... existing program data ... */];
 
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const TABLES_FILE = path.join(DATA_DIR, 'tables.json');
 
 // API Routes - Program
 app.get('/api/program', (req, res) => {
