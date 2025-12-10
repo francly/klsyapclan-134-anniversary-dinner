@@ -207,15 +207,24 @@ export default function SeatingPlan() {
         // Now add all tables at once
         try {
             const updatedTables = [...tables, ...newTables];
-            setTables(updatedTables);
 
-            await fetch('/api/tables', {
+            const response = await fetch('/api/tables', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedTables),
             });
 
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            // Update state AFTER successful save
+            setTables(updatedTables);
+
             alert(`批量导入完成！\n成功添加 ${newTables.length} 张桌次。`);
+
+            // Reload from server to confirm
+            window.location.reload();
         } catch (error) {
             alert('保存失败: ' + error.message);
             console.error('Save error:', error);
@@ -333,22 +342,31 @@ export default function SeatingPlan() {
         // Save all at once
         try {
             const updatedTables = [...tables, ...newTables];
-            setTables(updatedTables);
 
-            await fetch('/api/tables', {
+            const response = await fetch('/api/tables', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedTables),
             });
 
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            // Update state AFTER successful save
+            setTables(updatedTables);
+
             alert(`智能导入完成！\n成功: ${newTables.length} 张\n失败: ${errorCount} 张`);
+
+            setIsSmartImportOpen(false);
+            setPasteData('');
+
+            // Reload from server to confirm
+            window.location.reload();
         } catch (error) {
             alert('保存失败: ' + error.message);
             console.error('Save error:', error);
         }
-
-        setIsSmartImportOpen(false);
-        setPasteData('');
     };
 
     if (loading) return <div className="p-10 text-center">正在加载席位数据...</div>;
