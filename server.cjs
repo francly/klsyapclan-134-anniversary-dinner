@@ -128,6 +128,44 @@ app.post('/api/tasks', (req, res) => {
     }
 });
 
+const RUNDOWN_FILE = path.join(DATA_DIR, 'rundown.json');
+
+// API Routes - Rundown
+app.get('/api/rundown', (req, res) => {
+    if (fs.existsSync(RUNDOWN_FILE)) {
+        try {
+            const data = fs.readFileSync(RUNDOWN_FILE, 'utf8');
+            if (!data.trim()) {
+                return res.json([]);
+            }
+            const parsed = JSON.parse(data);
+            if (!Array.isArray(parsed) || parsed.length === 0) {
+                return res.json([]);
+            }
+            res.json(parsed);
+        } catch (err) {
+            console.error('Error reading rundown file:', err);
+            res.json([]);
+        }
+    } else {
+        res.json([]);
+    }
+});
+
+app.post('/api/rundown', (req, res) => {
+    try {
+        const newRundown = req.body;
+        if (!Array.isArray(newRundown)) {
+            return res.status(400).json({ error: 'Rundown must be an array' });
+        }
+        fs.writeFileSync(RUNDOWN_FILE, JSON.stringify(newRundown, null, 2));
+        res.json({ success: true, message: 'Rundown saved successfully' });
+    } catch (err) {
+        console.error('Error writing rundown file:', err);
+        res.status(500).json({ error: 'Failed to save rundown' });
+    }
+});
+
 // API Routes - Tables
 app.get('/api/tables', (req, res) => {
     if (fs.existsSync(TABLES_FILE)) {
