@@ -62,14 +62,23 @@ const TABLES_FILE = path.join(DATA_DIR, 'tables.json');
 
 // API Routes - Program
 app.get('/api/program', (req, res) => {
-    /* ... existing program get logic ... */
     if (fs.existsSync(DATA_FILE)) {
         try {
             const data = fs.readFileSync(DATA_FILE, 'utf8');
-            res.json(JSON.parse(data));
+            if (!data.trim()) {
+                // File is empty, return fallback
+                return res.json(initialProgramData);
+            }
+            const parsed = JSON.parse(data);
+            if (!Array.isArray(parsed) || parsed.length === 0) {
+                // File contains empty array, return fallback
+                return res.json(initialProgramData);
+            }
+            res.json(parsed);
         } catch (err) {
             console.error('Error reading data file:', err);
-            res.status(500).json({ error: 'Failed to read data' });
+            // Return fallback on parse error
+            res.json(initialProgramData);
         }
     } else {
         res.json(initialProgramData);
