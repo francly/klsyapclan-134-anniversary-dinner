@@ -13,7 +13,12 @@ export default function Rundown() {
         fetch('/api/rundown')
             .then(res => res.json())
             .then(data => {
-                setRundown(data);
+                // Use fallback data if API returns empty array
+                if (!data || data.length === 0) {
+                    setRundown(initialRundownData);
+                } else {
+                    setRundown(data);
+                }
                 setIsLoading(false);
             })
             .catch(err => {
