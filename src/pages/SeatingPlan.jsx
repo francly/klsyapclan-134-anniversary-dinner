@@ -6,6 +6,29 @@ import Modal from "../components/ui/Modal";
 import { CATEGORY_GROUPS } from "../data/categories";
 import { getCategoryGroup, getGroupStyles, CATEGORY_NAMES } from "../utils/categoryHelpers";
 
+// Batch import data
+const IMPORT_DATA = `檳城南陽堂葉氏宗祠	10	1
+霹靂太平南陽堂葉氏宗祠	5	2
+隆雪南陽葉氏公會	40	3/4/5/6
+雪蘭莪沙登、無拉港南陽葉氏宗親會	10	7
+森州南陽葉氏宗親聯宗會	10	8
+波德申葉氏聯宗會	10	9
+馬六甲吳興南陽堂沈葉尤宗祠	2	10
+柔佛州葉氏宗親會	10	11
+柔南南陽葉氏宗親會	10	12
+沙巴州西海岸葉氏宗親會	5	13
+沙巴州山打根葉氏宗親會	2	14
+沙巴州斗湖葉氏宗親會	10	15
+砂拉越美里葉氏	20	16
+砂拉越詩巫省南陽葉氏宗親會	5	17
+砂拉越泗里街省葉氏公會	2	18
+砂拉越南陽葉氏宗親會	10	19
+雪州蒲種葉氏公會	10	20
+馬來西亞南陽葉氏宗親總會	5	21
+雪蘭莪沈氏宗祠	10	22
+吉隆玻沈氏宗祠	10	23
+馬來西亞尤氏宗親總會	10	24`;
+
 export default function SeatingPlan() {
     const { tables, loading, error, addTable, updateTable, deleteTable } = useTables();
     const [searchQuery, setSearchQuery] = useState("");
@@ -122,6 +145,75 @@ export default function SeatingPlan() {
         setIsModalOpen(false);
     };
 
+    // Batch Import Handler
+    const handleBatchImport = async () => {
+        if (!window.confirm('确定要批量导入22个组织的桌次数据吗？\n\n这将添加24张新桌次。')) return;
+
+        const lines = IMPORT_DATA.trim().split('\n');
+        let successCount = 0;
+
+        for (const line of lines) {
+            const parts = line.split('\t');
+            if (parts.length !== 3) continue;
+
+            const [name, pax, tableNumbers] = parts;
+            const paxNum = parseInt(pax) || 2;
+
+            // Handle multiple table numbers (e.g., "3/4/5/6")
+            if (tableNumbers.includes('/')) {
+                const numbers = tableNumbers.split('/').map(n => parseInt(n.trim()));
+                const paxPerTable = Math.floor(paxNum / numbers.length);
+                const remainder = paxNum % numbers.length;
+
+                for (let idx = 0; idx < numbers.length; idx++) {
+                    await addTable({
+                        name: name.trim(),
+                        category: name.trim(),
+                        pax: paxPerTable + (idx < remainder ? 1 : 0),
+                        tableNumber: numbers[idx],
+                        region: 'Main Hall',
+                        notes: '',
+                        seats: []
+                    });
+                    successCount++;
+                }
+            } else {
+                await addTable({
+                    name: name.trim(),
+                    category: name.trim(),
+                    pax: paxNum,
+                    tableNumber: parseInt(tableNumbers.trim()),
+                    region: 'Main Hall',
+                    notes: '',
+                    seats: []
+                });
+                successCount++;
+            }
+        }
+
+        alert(`批量导入完成！\n成功添加 ${successCount} 张桌次。`);
+    };
+
+    // Clear All Handler (Password Protected)
+    const handleClearAll = async () => {
+        const password = window.prompt('⚠️ 危险操作！\n\n请输入密码以清除所有桌次数据：');
+
+        if (password !== '1892') {
+            if (password !== null) alert('密码错误！');
+            return;
+        }
+
+        if (!window.confirm('确定要删除所有桌次吗？\n\n此操作不可恢复！')) return;
+
+        let deleteCount = 0;
+        for (const table of tables) {
+            await deleteTable(table.id);
+            deleteCount++;
+        }
+
+        alert(`已清除 ${deleteCount} 张桌次。`);
+    };
+
     if (loading) return <div className="p-10 text-center">正在加载席位数据...</div>;
 
     return (
@@ -148,11 +240,25 @@ export default function SeatingPlan() {
                         />
                     </div>
                     <button
+                        onClick={handleBatchImport}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        批量导入
+                    </button>
+                    <button
                         onClick={() => setIsModalOpen(true)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
                         添加桌次
+                    </button>
+                    <button
+                        onClick={handleClearAll}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        清除所有
                     </button>
                 </div>
             </div>
