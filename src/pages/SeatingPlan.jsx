@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Users, LayoutGrid } from "lucide-react";
+import { Plus, Search, Users, LayoutGrid, Trash2 } from "lucide-react";
 import { useTables } from "../context/TableContext";
 import TableCard from "../components/TableCard";
 import Modal from "../components/ui/Modal";
