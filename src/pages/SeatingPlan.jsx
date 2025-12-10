@@ -14,23 +14,28 @@ export default function SeatingPlan() {
     // Form State for Add/Edit
     const [editMode, setEditMode] = useState(false);
     const [currentTableId, setCurrentTableId] = useState(null);
+    const [isMixedMode, setIsMixedMode] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
-        category: "属会 (Category A)", // Default to first group key or similar
+        category: "属会 (Category A)",
         pax: 10,
-        tableNumber: null
+        tableNumber: null,
+        notes: "",
+        seats: [] // Array of { category, pax }
     });
 
     // Reset form when modal opens/closes
     useEffect(() => {
         if (!isModalOpen) {
             setEditMode(false);
+            setIsMixedMode(false);
             setFormData({
                 name: "",
                 category: Object.keys(CATEGORY_GROUPS)[0] ? Object.values(CATEGORY_GROUPS)[0][0] : "Affiliate",
                 pax: 10,
                 tableNumber: null,
-                notes: ""
+                notes: "",
+                seats: []
             });
         }
     }, [isModalOpen]);
@@ -39,24 +44,18 @@ export default function SeatingPlan() {
     const stats = useMemo(() => {
         const totalTables = tables.length;
         const totalPax = tables.reduce((sum, t) => sum + (parseInt(t.pax) || 0), 0);
-
-        // Simplified category stats mapping based on the user's groups
+        // ... (rest of stats logic same as before, category derivation works on t.category)
         const byCategory = tables.reduce((acc, t) => {
             const cat = t.category || "Unknown";
-            // Check which group the category belongs to
             let group = "Other";
-
-            // Check Key/Values from CATEGORY_GROUPS
-            if (CATEGORY_GROUPS["属会 (Category A)"].includes(cat)) group = "Affiliate";
-            else if (CATEGORY_GROUPS["其他社团 (Category B)"].includes(cat)) group = "Association";
-            else if (CATEGORY_GROUPS["其他 (Others)"].includes(cat)) group = "Individual";
+            if (CATEGORY_GROUPS["属会 (Category A)"]?.includes(cat)) group = "Affiliate";
+            else if (CATEGORY_GROUPS["其他社团 (Category B)"]?.includes(cat)) group = "Association";
+            else if (CATEGORY_GROUPS["其他 (Others)"]?.includes(cat)) group = "Individual";
             else {
-                // Fallback checks
                 if (cat.includes("属会") || cat.includes("Affiliate")) group = "Affiliate";
-                else if (cat.includes("社团") || cat.includes("Association")) group = "Association";
+                else if (cat.includes("社团") || cat.includes("Association")) group = "Association"; // Fixed typo
                 else if (cat.includes("个人") || cat.includes("Individual")) group = "Individual";
             }
-
             acc[group] = (acc[group] || 0) + 1;
             return acc;
         }, {});
@@ -72,12 +71,15 @@ export default function SeatingPlan() {
     const handleEditClick = (table) => {
         setEditMode(true);
         setCurrentTableId(table.id);
+        const hasSeats = table.seats && table.seats.length > 0;
+        setIsMixedMode(hasSeats);
         setFormData({
             name: table.name,
             category: table.category,
             pax: table.pax,
             tableNumber: table.tableNumber,
-            notes: table.notes || ""
+            notes: table.notes || "",
+            seats: table.seats || []
         });
         setIsModalOpen(true);
     };
@@ -86,22 +88,37 @@ export default function SeatingPlan() {
         e.preventDefault();
         if (!formData.name) return;
 
+        let finalData = { ...formData };
+
+        // Process Mixed Mode Data
+        if (isMixedMode && finalData.seats.length > 0) {
+            // 1. Calculate Total Pax
+            const totalPax = finalData.seats.reduce((sum, s) => sum + (parseInt(s.pax) || 0), 0);
+            finalData.pax = totalPax;
+
+            // 2. Determine Primary Category (Largest Pax)
+            const primarySeat = [...finalData.seats].sort((a, b) => b.pax - a.pax)[0];
+            if (primarySeat) {
+                finalData.category = primarySeat.category;
+            }
+        } else {
+            // If switched back to simple, clear seats
+            finalData.seats = [];
+        }
+
         if (editMode && currentTableId) {
-            // Update Existing
             await updateTable({
                 id: currentTableId,
-                ...formData
+                ...finalData
             });
         } else {
-            // Add New
             const tableNumber = tables.length > 0 ? Math.max(...tables.map(t => t.tableNumber || 0)) + 1 : 1;
             await addTable({
-                ...formData,
+                ...finalData,
                 tableNumber: tableNumber,
                 region: "Main Hall"
             });
         }
-
         setIsModalOpen(false);
     };
 
@@ -240,82 +257,173 @@ export default function SeatingPlan() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">类别 (选择或输入)</label>
-                            <div className="space-y-2">
-                                <select
-                                    value={Object.values(CATEGORY_GROUPS).flat().includes(formData.category) ? formData.category : "Custom"}
-                                    onChange={e => {
-                                        const val = e.target.value;
-                                        if (val === "Custom") {
-                                            setFormData({ ...formData, category: "" }); // Clear for input
-                                        } else {
-                                            setFormData({ ...formData, category: val });
-                                        }
-                                    }}
-                                    className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
+                        <div className="flex items-center justify-between bg-gray-50 dark:bg-[#2a2a2a] p-3 rounded-lg">
+                            <span className="text-sm font-medium">混合拼桌 (Mixed Table)</span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newMode = !isMixedMode;
+                                    setIsMixedMode(newMode);
+                                    if (newMode && formData.seats.length === 0) {
+                                        // Init with current data if empty
+                                        setFormData({
+                                            ...formData,
+                                            seats: [{ category: formData.category, pax: formData.pax }]
+                                        });
+                                    }
+                                }}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isMixedMode ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isMixedMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+
+                        {isMixedMode ? (
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium mb-1">席位组合 (自动计算总人数)</label>
+                                {formData.seats.map((seat, index) => (
+                                    <div key={index} className="flex gap-2 items-center">
+                                        <div className="flex-1">
+                                            <select
+                                                value={Object.values(CATEGORY_GROUPS).flat().includes(seat.category) ? seat.category : "Custom"}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    const newSeats = [...formData.seats];
+                                                    newSeats[index] = { ...seat, category: val === "Custom" ? "" : val };
+                                                    setFormData({ ...formData, seats: newSeats });
+                                                }}
+                                                className="w-full border rounded-lg p-2 text-sm dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
+                                            >
+                                                <option value="" disabled>选择类别</option>
+                                                {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
+                                                    <optgroup key={group} label={group}>
+                                                        {items.map(item => (
+                                                            <option key={item} value={item}>{item}</option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                                <option value="Custom">自定义 (Custom)...</option>
+                                            </select>
+                                            {(!Object.values(CATEGORY_GROUPS).flat().includes(seat.category) || seat.category === "") && (
+                                                <input
+                                                    type="text"
+                                                    placeholder="输入类别..."
+                                                    value={seat.category}
+                                                    onChange={e => {
+                                                        const newSeats = [...formData.seats];
+                                                        newSeats[index] = { ...seat, category: e.target.value };
+                                                        setFormData({ ...formData, seats: newSeats });
+                                                    }}
+                                                    className="w-full mt-1 border rounded-lg p-2 text-sm dark:bg-[#2d2d2d] dark:border-[#3d3d3d] bg-gray-50 dark:bg-[#2a2a2a]"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="w-20">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="20"
+                                                value={seat.pax}
+                                                onChange={e => {
+                                                    const newSeats = [...formData.seats];
+                                                    newSeats[index] = { ...seat, pax: parseInt(e.target.value) || 0 };
+                                                    setFormData({ ...formData, seats: newSeats });
+                                                }}
+                                                className="w-full border rounded-lg p-2 text-sm dark:bg-[#2d2d2d] dark:border-[#3d3d3d] text-center"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newSeats = formData.seats.filter((_, i) => i !== index);
+                                                setFormData({ ...formData, seats: newSeats });
+                                            }}
+                                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, seats: [...formData.seats, { category: "", pax: 1 }] })}
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                                 >
-                                    {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
-                                        <optgroup key={group} label={group}>
-                                            {items.map(item => (
-                                                <option key={item} value={item}>{item}</option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                    <option value="Custom">自定义 / 混合 (Custom/Mixed)...</option>
-                                </select>
-
-                                {(!Object.values(CATEGORY_GROUPS).flat().includes(formData.category) || formData.category === "") && (
-                                    <input
-                                        type="text"
-                                        placeholder="输入自定义类别或混合说明..."
-                                        value={formData.category}
-                                        onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] bg-gray-50 dark:bg-[#2a2a2a]"
-                                    />
-                                )}
+                                    <Plus className="w-3 h-3" /> 添加组合
+                                </button>
+                                <div className="text-right text-sm font-bold text-gray-700 dark:text-gray-300">
+                                    总人数: {formData.seats.reduce((sum, s) => sum + (parseInt(s.pax) || 0), 0)} Pax
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">类别 (选择或输入)</label>
+                                    <div className="space-y-2">
+                                        <select
+                                            value={Object.values(CATEGORY_GROUPS).flat().includes(formData.category) ? formData.category : "Custom"}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (val === "Custom") {
+                                                    setFormData({ ...formData, category: "" }); // Clear for input
+                                                } else {
+                                                    setFormData({ ...formData, category: val });
+                                                }
+                                            }}
+                                            className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
+                                        >
+                                            {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
+                                                <optgroup key={group} label={group}>
+                                                    {items.map(item => (
+                                                        <option key={item} value={item}>{item}</option>
+                                                    ))}
+                                                </optgroup>
+                                            ))}
+                                            <option value="Custom">自定义 / 混合 (Custom/Mixed)...</option>
+                                        </select>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1">容纳人数 (Pax)</label>
-                            <input
-                                type="number"
-                                required
-                                min="1"
-                                max="20"
-                                value={formData.pax}
-                                onChange={e => setFormData({ ...formData, pax: parseInt(e.target.value) || 0 })}
-                                className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
-                            />
-                        </div>
+                                        {(!Object.values(CATEGORY_GROUPS).flat().includes(formData.category) || formData.category === "") && (
+                                            <input
+                                                type="text"
+                                                placeholder="输入自定义类别或混合说明..."
+                                                value={formData.category}
+                                                onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                                className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] bg-gray-50 dark:bg-[#2a2a2a]"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1">备注 (混合类别说明)</label>
-                            <textarea
-                                placeholder="例如: 8位记者 + 2位工作人员"
-                                value={formData.notes || ""}
-                                onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] h-20 text-sm"
-                            />
-                        </div>
-                    </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">容纳人数 (Pax)</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        min="1"
+                                        max="20"
+                                        value={formData.pax}
+                                        onChange={e => setFormData({ ...formData, pax: parseInt(e.target.value) || 0 })}
+                                        className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
+                                    />
+                                </div>
+                            </>
+                        )}
 
-                    <div className="pt-4 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            取消
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                        >
-                            {editMode ? "更新桌次" : "创建桌次"}
-                        </button>
-                    </div>
+                        <div className="pt-4 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                取消
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                            >
+                                {editMode ? "更新桌次" : "创建桌次"}
+                            </button>
+                        </div>
                 </form>
             </Modal>
         </div>
