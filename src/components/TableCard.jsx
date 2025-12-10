@@ -117,7 +117,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                         ))}
                     </div>
                 ) : (
-                    <p className={`text-sm font-semibold line-clamp-4 w-full ${styles.text} bg-transparent mt-1 min-h-[4rem] flex items-center justify-center`} title={table.category}>
+                    <p className={`text-base font-semibold line-clamp-4 w-full ${styles.text} bg-transparent mt-1 min-h-[4rem] flex items-center justify-center`} title={table.category}>
                         {getDisplayCategory(table.category)}
                     </p>
                 )}
