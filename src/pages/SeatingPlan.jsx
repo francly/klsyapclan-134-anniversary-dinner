@@ -147,15 +147,16 @@ export default function SeatingPlan() {
         setIsModalOpen(false);
     };
 
-    // Batch Import Handler (FIXED with error handling)
+    // Batch Import Handler (FIXED - no race condition)
     const handleBatchImport = async () => {
         if (!window.confirm('确定要批量导入22个组织的桌次数据吗？\n\n这将添加24张新桌次。')) return;
 
         const lines = IMPORT_DATA.trim().split('\n');
-        let successCount = 0;
+        const newTables = [];
         let errorCount = 0;
         const errors = [];
 
+        // First, build all table objects
         for (const line of lines) {
             const parts = line.split('\t');
             if (parts.length !== 3) continue;
@@ -171,40 +172,53 @@ export default function SeatingPlan() {
                     const remainder = paxNum % numbers.length;
 
                     for (let idx = 0; idx < numbers.length; idx++) {
-                        await addTable({
+                        newTables.push({
+                            id: Date.now() + Math.random(), // Unique ID
                             name: name.trim(),
                             category: name.trim(),
                             pax: paxPerTable + (idx < remainder ? 1 : 0),
                             tableNumber: numbers[idx],
                             region: 'Main Hall',
                             notes: '',
-                            seats: []
+                            seats: [],
+                            guests: []
                         });
-                        successCount++;
                     }
                 } else {
-                    await addTable({
+                    newTables.push({
+                        id: Date.now() + Math.random(), // Unique ID
                         name: name.trim(),
                         category: name.trim(),
                         pax: paxNum,
                         tableNumber: parseInt(tableNumbers.trim()),
                         region: 'Main Hall',
                         notes: '',
-                        seats: []
+                        seats: [],
+                        guests: []
                     });
-                    successCount++;
                 }
             } catch (error) {
                 errorCount++;
                 errors.push(`${name.trim()}: ${error.message}`);
-                console.error('Import error:', error);
+                console.error('Parse error:', error);
             }
         }
 
-        if (errorCount > 0) {
-            alert(`批量导入完成！\n成功: ${successCount} 张\n失败: ${errorCount} 张\n\n错误:\n${errors.join('\n')}`);
-        } else {
-            alert(`批量导入完成！\n成功添加 ${successCount} 张桌次。`);
+        // Now add all tables at once
+        try {
+            const updatedTables = [...tables, ...newTables];
+            setTables(updatedTables);
+
+            await fetch('/api/tables', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTables),
+            });
+
+            alert(`批量导入完成！\n成功添加 ${newTables.length} 张桌次。`);
+        } catch (error) {
+            alert('保存失败: ' + error.message);
+            console.error('Save error:', error);
         }
     };
 
@@ -273,9 +287,10 @@ export default function SeatingPlan() {
     };
 
     const importParsedData = async (data) => {
-        let successCount = 0;
+        const newTables = [];
         let errorCount = 0;
 
+        // Build all table objects first
         for (const row of data) {
             try {
                 if (row.tableNumbers.includes('/')) {
@@ -284,36 +299,54 @@ export default function SeatingPlan() {
                     const remainder = row.pax % numbers.length;
 
                     for (let idx = 0; idx < numbers.length; idx++) {
-                        await addTable({
+                        newTables.push({
+                            id: Date.now() + Math.random(),
                             name: row.name,
                             category: row.name,
                             pax: paxPerTable + (idx < remainder ? 1 : 0),
                             tableNumber: numbers[idx],
                             region: 'Main Hall',
                             notes: '',
-                            seats: []
+                            seats: [],
+                            guests: []
                         });
-                        successCount++;
                     }
                 } else {
-                    await addTable({
+                    newTables.push({
+                        id: Date.now() + Math.random(),
                         name: row.name,
                         category: row.name,
                         pax: row.pax,
                         tableNumber: parseInt(row.tableNumbers),
                         region: 'Main Hall',
                         notes: '',
-                        seats: []
+                        seats: [],
+                        guests: []
                     });
-                    successCount++;
                 }
             } catch (error) {
                 errorCount++;
-                console.error('Import error:', error);
+                console.error('Parse error:', error);
             }
         }
 
-        alert(`智能导入完成！\n成功: ${successCount} 张\n失败: ${errorCount} 张`);
+        // Save all at once
+        try {
+            const updatedTables = [...tables, ...newTables];
+            setTables(updatedTables);
+
+            await fetch('/api/tables', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTables),
+            });
+
+            alert(`智能导入完成！\n成功: ${newTables.length} 张\n失败: ${errorCount} 张`);
+        } catch (error) {
+            alert('保存失败: ' + error.message);
+            console.error('Save error:', error);
+        }
+
         setIsSmartImportOpen(false);
         setPasteData('');
     };
