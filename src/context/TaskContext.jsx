@@ -9,14 +9,35 @@ const TaskContext = createContext();
 export const useTasks = () => useContext(TaskContext);
 
 export function TaskProvider({ children }) {
-    const [tasks, setTasks] = useState(() => {
-        const saved = localStorage.getItem("tasks");
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [tasks, setTasks] = useState([]);
 
+    // Load tasks from server on mount
     useEffect(() => {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }, [tasks]);
+        fetch('/api/tasks')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setTasks(data);
+                }
+            })
+            .catch(err => console.error("Failed to load tasks:", err));
+    }, []);
+
+    // Helper to save to server
+    const saveToServer = (newTasks) => {
+        fetch('/api/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTasks),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) console.error("Failed to save tasks:", data.error);
+            })
+            .catch(err => console.error("Error saving tasks:", err));
+    };
 
     const addTask = (task) => {
         const newTask = {
@@ -25,67 +46,70 @@ export function TaskProvider({ children }) {
             dueDate: task.dueDate || "",
             priority: task.priority || "medium",
             status: "todo",
-            assignees: task.assignees || (task.assignee ? [task.assignee] : []), // Support multiple assignees, fallback to single
+            assignees: task.assignees || (task.assignee ? [task.assignee] : []),
             createdAt: new Date().toISOString(),
-            startDate: task.startDate || new Date().toISOString(), // Use provided start date or now
-            comments: [], // Initialize comments array
+            startDate: task.startDate || new Date().toISOString(),
+            comments: [],
         };
-        setTasks((prev) => [newTask, ...prev]);
+
+        const newTaskList = [newTask, ...tasks];
+        setTasks(newTaskList);
+        saveToServer(newTaskList);
     };
 
     const updateTask = (id, updates) => {
-        setTasks((prev) =>
-            prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
-        );
+        const newTaskList = tasks.map((task) => (task.id === id ? { ...task, ...updates } : task));
+        setTasks(newTaskList);
+        saveToServer(newTaskList);
     };
 
     const deleteTask = (id) => {
-        setTasks((prev) => prev.filter((task) => task.id !== id));
+        const newTaskList = tasks.filter((task) => task.id !== id);
+        setTasks(newTaskList);
+        saveToServer(newTaskList);
     };
 
     const addComment = (taskId, text) => {
         const newComment = {
             id: uuidv4(),
             text,
-            author: "Current User", // Placeholder for now
+            author: "Current User",
             createdAt: new Date().toISOString(),
         };
-        setTasks((prev) =>
-            prev.map((task) =>
-                task.id === taskId
-                    ? { ...task, comments: [...(task.comments || []), newComment] }
-                    : task
-            )
+        const newTaskList = tasks.map((task) =>
+            task.id === taskId
+                ? { ...task, comments: [...(task.comments || []), newComment] }
+                : task
         );
+        setTasks(newTaskList);
+        saveToServer(newTaskList);
     };
 
     const clearAllTasks = () => {
-        setTasks([]);
+        const newTaskList = [];
+        setTasks(newTaskList);
+        saveToServer(newTaskList);
     };
 
     const generateTasks = (dinnerDate) => {
-        const newTasks = [];
+        const newGeneratedTasks = [];
         const dateObj = new Date(dinnerDate);
 
         committee.forEach((group) => {
             const templates = taskTemplates[group.role];
             if (templates) {
                 templates.forEach((template) => {
-                    // Distribute tasks among members of the group
-                    // For simplicity, assign to the first member, or rotate if we wanted to be fancy
-                    // Let's assign to the first member for now to ensure ownership
                     const assignee = group.members[0];
-
-                    newTasks.push({
+                    newGeneratedTasks.push({
                         id: uuidv4(),
                         title: template.title,
                         description: `Auto-generated task for ${group.role}`,
                         status: "todo",
                         priority: template.priority,
                         dueDate: addDays(dateObj, template.daysOffset).toISOString(),
-                        startDate: addDays(dateObj, template.daysOffset - (template.duration || 1)).toISOString(), // Calculate start date
+                        startDate: addDays(dateObj, template.daysOffset - (template.duration || 1)).toISOString(),
                         assignees: [assignee],
-                        assignee: assignee, // Legacy support
+                        assignee: assignee,
                         createdAt: new Date().toISOString(),
                         comments: []
                     });
@@ -93,12 +117,13 @@ export function TaskProvider({ children }) {
             }
         });
 
-        setTasks(newTasks);
+        // Use newGeneratedTasks directly, ensuring we replace existing (or clear and add new?)
+        // The previous implementation replaced all tasks. We will stick to that behavior.
+        setTasks(newGeneratedTasks);
+        saveToServer(newGeneratedTasks);
     };
 
     const getProjectStatus = () => {
-        // Logic: Red if any high priority task is overdue or if > 20% of tasks are overdue.
-        // For now, simple logic: Red if any task is overdue.
         const overdueTasks = tasks.filter(
             (t) => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== "done"
         );

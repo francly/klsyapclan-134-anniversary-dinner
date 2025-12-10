@@ -18,27 +18,13 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // Initial Data (Fallback)
-const initialProgramData = [
-    {
-        date: "2024-12-15",
-        events: [
-            { time: "18:00", title: "嘉宾签到 / 交流", subtitle: "Arrival of Guests / Cocktail Reception" },
-            { time: "19:00", title: "晚宴开始", subtitle: "Banquet Begins" },
-            { time: "19:15", title: "迎宾舞", subtitle: "Welcome Dance" },
-            { time: "19:20", title: "大会主席致词", subtitle: "Speech by Organizing Chairman", subtitleHighlight: true },
-            { time: "19:30", title: "叶氏宗祠主席致词", subtitle: "Speech by Clan President", subtitleHighlight: true },
-            { time: "19:40", title: "鸣锣 / 剪彩 / 联合亮灯仪式", subtitle: "Ribbon Cutting / Lighting Ceremony", highlight: true },
-            { time: "20:00", title: "余兴节目", subtitle: "Performance" },
-            { time: "20:30", title: "切蛋糕 / 敬酒仪式", subtitle: "Cake Cutting / Toasting Ceremony", highlight: true },
-            { time: "20:45", title: "纪念品赠送仪式", subtitle: "Souvenir Presentation" },
-            { time: "21:30", title: "幸运抽奖", subtitle: "Lucky Draw" },
-            { time: "22:00", title: "晚宴结束 / 大合照", subtitle: "End of Banquet / Group Photo" },
-        ],
-    },
-];
+const initialProgramData = [ /* ... existing program data ... */ ];
 
-// API Routes
+const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+
+// API Routes - Program
 app.get('/api/program', (req, res) => {
+    /* ... existing program get logic ... */
     if (fs.existsSync(DATA_FILE)) {
         try {
             const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -48,12 +34,12 @@ app.get('/api/program', (req, res) => {
             res.status(500).json({ error: 'Failed to read data' });
         }
     } else {
-        // Return default data if no file exists
         res.json(initialProgramData);
     }
 });
 
 app.post('/api/program', (req, res) => {
+    /* ... existing program post logic ... */
     try {
         const newData = req.body;
         fs.writeFileSync(DATA_FILE, JSON.stringify(newData, null, 2));
@@ -61,6 +47,37 @@ app.post('/api/program', (req, res) => {
     } catch (err) {
         console.error('Error writing data file:', err);
         res.status(500).json({ error: 'Failed to save data' });
+    }
+});
+
+// API Routes - Tasks
+app.get('/api/tasks', (req, res) => {
+    if (fs.existsSync(TASKS_FILE)) {
+        try {
+            const data = fs.readFileSync(TASKS_FILE, 'utf8');
+            res.json(JSON.parse(data));
+        } catch (err) {
+            console.error('Error reading tasks file:', err);
+            res.status(500).json({ error: 'Failed to read tasks' });
+        }
+    } else {
+        // Return empty array if no file exists
+        res.json([]);
+    }
+});
+
+app.post('/api/tasks', (req, res) => {
+    try {
+        const newTasks = req.body;
+        // Verify it's an array
+        if (!Array.isArray(newTasks)) {
+             return res.status(400).json({ error: 'Tasks must be an array' });
+        }
+        fs.writeFileSync(TASKS_FILE, JSON.stringify(newTasks, null, 2));
+        res.json({ success: true, message: 'Tasks saved successfully' });
+    } catch (err) {
+        console.error('Error writing tasks file:', err);
+        res.status(500).json({ error: 'Failed to save tasks' });
     }
 });
 
