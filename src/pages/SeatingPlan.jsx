@@ -50,7 +50,7 @@ export default function SeatingPlan() {
         setNewTable({ name: "", category: "Affiliate", pax: 10 });
     };
 
-    if (loading) return <div className="p-10 text-center">Loading Seating Data...</div>;
+    if (loading) return <div className="p-10 text-center">正在加载席位数据...</div>;
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
@@ -59,9 +59,9 @@ export default function SeatingPlan() {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <LayoutGrid className="w-8 h-8" />
-                        Seating Plan
+                        席位安排
                     </h1>
-                    <p className="text-gray-500 mt-1">Manage guest seating and table arrangements</p>
+                    <p className="text-gray-500 mt-1">管理晚宴席位与桌次安排</p>
                 </div>
 
                 <div className="flex gap-4 w-full md:w-auto">
@@ -69,7 +69,7 @@ export default function SeatingPlan() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
                             type="text"
-                            placeholder="Search tables..."
+                            placeholder="搜索桌号或类别..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#1f1f1f] dark:border-[#2d2d2d]"
@@ -80,7 +80,7 @@ export default function SeatingPlan() {
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
-                        Add Table
+                        添加桌次
                     </button>
                 </div>
             </div>
@@ -88,21 +88,21 @@ export default function SeatingPlan() {
             {/* Analytics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white dark:bg-[#1f1f1f] p-6 rounded-xl border border-gray-100 dark:border-[#2d2d2d] shadow-sm">
-                    <div className="text-gray-500 text-sm font-medium mb-2">Total Tables</div>
+                    <div className="text-gray-500 text-sm font-medium mb-2">总桌数</div>
                     <div className="text-3xl font-bold">{stats.totalTables}</div>
-                    <div className="text-xs text-gray-400 mt-2">Active tables</div>
+                    <div className="text-xs text-gray-400 mt-2">当前已安排</div>
                 </div>
                 <div className="bg-white dark:bg-[#1f1f1f] p-6 rounded-xl border border-gray-100 dark:border-[#2d2d2d] shadow-sm">
-                    <div className="text-gray-500 text-sm font-medium mb-2">Total Guests (Pax)</div>
+                    <div className="text-gray-500 text-sm font-medium mb-2">总宾客数 (Pax)</div>
                     <div className="text-3xl font-bold text-blue-600">{stats.totalPax}</div>
-                    <div className="text-xs text-gray-400 mt-2">Estimated capacity</div>
+                    <div className="text-xs text-gray-400 mt-2">预计容纳人数</div>
                 </div>
                 <div className="bg-white dark:bg-[#1f1f1f] p-6 rounded-xl border border-gray-100 dark:border-[#2d2d2d] shadow-sm">
-                    <div className="text-gray-500 text-sm font-medium mb-2">Breakdown</div>
+                    <div className="text-gray-500 text-sm font-medium mb-2">分类统计</div>
                     <div className="flex gap-2 text-xs">
-                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">Aff: {stats.byCategory['Affiliate'] || 0}</span>
-                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Assoc: {stats.byCategory['Association'] || 0}</span>
-                        <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">Ind: {stats.byCategory['Individual'] || 0}</span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">属会: {stats.byCategory['Affiliate'] || 0}</span>
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded">社团: {stats.byCategory['Association'] || 0}</span>
+                        <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">个人: {stats.byCategory['Individual'] || 0}</span>
                     </div>
                 </div>
             </div>
@@ -118,7 +118,7 @@ export default function SeatingPlan() {
             {filteredTables.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 dark:bg-[#1f1f1f]/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-[#2d2d2d]">
                     <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No tables found. Click "Add Table" to start.</p>
+                    <p className="text-gray-500">暂无桌次数据。点击“添加桌次”开始安排。</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -129,35 +129,35 @@ export default function SeatingPlan() {
             )}
 
             {/* Add Table Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Table">
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="添加新桌次">
                 <form onSubmit={handleAddTable} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Table Name</label>
+                        <label className="block text-sm font-medium mb-1">桌名 / 编号</label>
                         <input
                             type="text"
                             required
                             value={newTable.name}
                             onChange={e => setNewTable({ ...newTable, name: e.target.value })}
                             className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
-                            placeholder="e.g. VIP 1"
+                            placeholder="例如: VIP 1"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Category</label>
+                            <label className="block text-sm font-medium mb-1">类别</label>
                             <select
                                 value={newTable.category}
                                 onChange={e => setNewTable({ ...newTable, category: e.target.value })}
                                 className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
                             >
-                                <option value="Affiliate">Affiliate</option>
-                                <option value="Association">Association</option>
-                                <option value="Individual">Individual</option>
+                                <option value="Affiliate">属会</option>
+                                <option value="Association">社团</option>
+                                <option value="Individual">个人</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Pax Capacity</label>
+                            <label className="block text-sm font-medium mb-1">容纳人数 (Pax)</label>
                             <input
                                 type="number"
                                 required
@@ -176,13 +176,13 @@ export default function SeatingPlan() {
                             onClick={() => setIsModalOpen(false)}
                             className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            Cancel
+                            取消
                         </button>
                         <button
                             type="submit"
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                         >
-                            Create Table
+                            创建桌次
                         </button>
                     </div>
                 </form>

@@ -42,7 +42,11 @@ export default function TableCard({ table, onDelete }) {
                 <h3 className="font-bold text-sm truncate w-full px-1" title={table.name}>
                     {table.name}
                 </h3>
-                <p className="text-xs opacity-75">{table.category}</p>
+                <p className="text-xs opacity-75">
+                    {table.category === 'Affiliate' ? '属会' :
+                        table.category === 'Association' ? '社团' :
+                            table.category === 'Individual' ? '个人' : table.category}
+                </p>
             </div>
 
             {/* Pax Indicator */}
