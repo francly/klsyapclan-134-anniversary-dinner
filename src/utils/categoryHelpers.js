@@ -42,24 +42,27 @@ export const getGroupStyles = (groupName) => {
     switch (groupName) {
         case CATEGORY_NAMES.AFFILIATE:
             return {
-                border: "border-cyan-400",
-                text: "text-cyan-700",
-                bg: "bg-cyan-50",
-                headerColor: "text-cyan-800 border-cyan-200 bg-cyan-50"
+                border: "border-green-400",
+                text: "text-green-700",
+                bg: "bg-green-50",
+                headerColor: "text-green-800 border-green-200 bg-green-50",
+                pieColor: "#22c55e" // green-500
             };
         case CATEGORY_NAMES.ASSOCIATION:
             return {
-                border: "border-emerald-400",
-                text: "text-emerald-700",
-                bg: "bg-emerald-50",
-                headerColor: "text-emerald-800 border-emerald-200 bg-emerald-50"
+                border: "border-blue-400",
+                text: "text-blue-700",
+                bg: "bg-blue-50",
+                headerColor: "text-blue-800 border-blue-200 bg-blue-50",
+                pieColor: "#3b82f6" // blue-500
             };
         default: // OTHER
             return {
-                border: "border-gray-300",
-                text: "text-gray-700",
-                bg: "bg-gray-50",
-                headerColor: "text-gray-700 border-gray-200 bg-gray-50"
+                border: "border-orange-300",
+                text: "text-orange-700",
+                bg: "bg-orange-50",
+                headerColor: "text-orange-800 border-orange-200 bg-orange-50",
+                pieColor: "#f97316" // orange-500
             };
     }
 };

@@ -62,18 +62,44 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
                 </button>
             </div>
 
-            {/* Main Circle with Water Level/Progress */}
+            {/* Main Circle with Water Level/Progress or Pie Chart */}
             <div className="relative w-24 h-24 mb-3 rounded-full overflow-hidden border-4 border-gray-100 bg-white shadow-inner">
 
-                {/* Wave Container */}
-                <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-in-out"
-                    style={{ height: `${fillPercentage}%` }}>
-                    <div className={`w-full h-full opacity-80 ${getPaxColor()}`}></div>
-                </div>
+                {table.seats && table.seats.length > 1 ? (
+                    // PIE CHART MODE
+                    <div
+                        className="w-full h-full opacity-80"
+                        style={{
+                            background: `conic-gradient(${(() => {
+                                    let currentDeg = 0;
+                                    const total = table.seats.reduce((sum, s) => sum + (parseInt(s.pax) || 0), 0);
+                                    if (total === 0) return '#e5e7eb 0% 100%'; // Gray if empty
+
+                                    return table.seats.map(s => {
+                                        const pax = parseInt(s.pax) || 0;
+                                        const group = getCategoryGroup(s.category);
+                                        const style = getGroupStyles(group);
+                                        const deg = (pax / total) * 360;
+                                        const segment = `${style.pieColor} ${currentDeg}deg ${currentDeg + deg}deg`;
+                                        currentDeg += deg;
+                                        return segment;
+                                    }).join(', ')
+                                })()
+                                })`
+                        }}
+                    ></div>
+                ) : (
+                    // WATER WAVE MODE
+                    <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-in-out"
+                        style={{ height: `${fillPercentage}%` }}>
+                        <div className={`w-full h-full opacity-80 ${getPaxColor()}`}></div>
+                    </div>
+                )}
 
                 {/* Center Number */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                    <span className={`text-2xl font-bold bg-transparent ${fillPercentage > 50 ? 'text-white' : 'text-gray-700'}`}>
+                    <span className={`text-2xl font-bold bg-transparent ${(table.seats && table.seats.length > 1) || fillPercentage > 50 ? 'text-white drop-shadow-md' : 'text-gray-700'
+                        }`}>
                         {table.tableNumber}
                     </span>
                 </div>
