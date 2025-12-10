@@ -34,16 +34,26 @@ export default function Rundown() {
             });
     }, []);
 
-    // Fetch committee members for autocomplete
+    // Fetch committee members for dropdown
     useEffect(() => {
         fetch('/api/committee')
             .then(res => res.json())
             .then(data => {
-                // Extract member names from committee data
-                const members = data.flatMap(dept =>
-                    dept.members.map(m => m.name)
-                );
-                setCommitteeMembers(members);
+                // Extract both member names and positions
+                const options = [];
+                data.forEach(dept => {
+                    dept.members.forEach(m => {
+                        // Add name
+                        if (m.name && !options.includes(m.name)) {
+                            options.push(m.name);
+                        }
+                        // Add position if exists
+                        if (m.position && !options.includes(m.position)) {
+                            options.push(m.position);
+                        }
+                    });
+                });
+                setCommitteeMembers(options.sort());
             })
             .catch(err => console.error("Failed to load committee data", err));
     }, []);
@@ -148,7 +158,7 @@ export default function Rundown() {
                                 <table className="w-full">
                                     <thead className="bg-gray-50 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-[#333]">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-40">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">
                                                 时间
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -241,39 +251,16 @@ export default function Rundown() {
     );
 }
 
-// Responsible People Editor Component with Autocomplete
+// Responsible People Editor Component with Dropdown
 function ResponsiblePeopleEditor({ people, suggestions, onAdd, onRemove }) {
-    const [inputValue, setInputValue] = useState('');
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+    const [isOpen, setIsOpen] = useState(false);
 
-    const handleInputChange = (e) => {
-        const value = e.target.value;
-        setInputValue(value);
+    // Filter out already selected people
+    const availableOptions = suggestions.filter(s => !people.includes(s));
 
-        if (value.trim()) {
-            const filtered = suggestions.filter(s =>
-                s.toLowerCase().includes(value.toLowerCase()) &&
-                !people.includes(s)
-            );
-            setFilteredSuggestions(filtered);
-            setShowSuggestions(filtered.length > 0);
-        } else {
-            setShowSuggestions(false);
-        }
-    };
-
-    const handleAddPerson = (person) => {
+    const handleSelect = (person) => {
         onAdd(person);
-        setInputValue('');
-        setShowSuggestions(false);
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && inputValue.trim()) {
-            e.preventDefault();
-            handleAddPerson(inputValue.trim());
-        }
+        setIsOpen(false);
     };
 
     return (
@@ -297,29 +284,29 @@ function ResponsiblePeopleEditor({ people, suggestions, onAdd, onRemove }) {
                 ))}
             </div>
 
-            {/* Input with Autocomplete */}
+            {/* Dropdown Selector */}
             <div className="relative">
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => inputValue && setShowSuggestions(filteredSuggestions.length > 0)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    placeholder="添加负责人..."
-                    className="w-full px-2 py-1 text-sm text-gray-600 dark:text-gray-400 bg-transparent border border-gray-300 dark:border-[#444] focus:border-blue-500 rounded outline-none transition-colors"
-                />
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                    className="w-full px-2 py-1.5 text-sm text-left text-gray-600 dark:text-gray-400 bg-white dark:bg-[#1f1f1f] border border-gray-300 dark:border-[#444] hover:border-blue-500 rounded outline-none transition-colors flex items-center justify-between"
+                >
+                    <span>选择负责人...</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
 
-                {/* Autocomplete Dropdown */}
-                {showSuggestions && (
+                {/* Dropdown Menu */}
+                {isOpen && availableOptions.length > 0 && (
                     <div className="absolute z-10 mt-1 w-full bg-white dark:bg-[#2d2d2d] border border-gray-200 dark:border-[#444] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {filteredSuggestions.map((suggestion, index) => (
+                        {availableOptions.map((option, index) => (
                             <button
                                 key={index}
-                                onClick={() => handleAddPerson(suggestion)}
+                                onClick={() => handleSelect(option)}
                                 className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                             >
-                                {suggestion}
+                                {option}
                             </button>
                         ))}
                     </div>
