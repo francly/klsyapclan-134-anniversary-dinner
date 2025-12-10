@@ -138,8 +138,7 @@ export default function Rundown() {
 
     if (isLoading) return <div className="p-10 text-center">正在加载活动执行清单...</div>;
 
-    console.log('Rendering with rundown:', rundown);
-    console.log('Rundown length:', rundown.length);
+    console.log('Rendering Rundown Page v1.2');
 
     return (
         <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#111111] transition-colors p-4 md:p-8">
