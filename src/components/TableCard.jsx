@@ -108,22 +108,22 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
             {/* Category and Details */}
             <div className="text-center w-full px-1 flex flex-col items-center mb-1">
                 {table.seats && table.seats.length > 1 ? (
-                    <div className="w-full max-h-16 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
+                    <div className="w-full max-h-20 overflow-y-auto mt-1 no-scrollbar flex flex-col items-center">
                         {table.seats.map((seat, idx) => (
-                            <div key={idx} className="flex justify-between w-full px-2 text-xs text-gray-600 font-medium">
-                                <span className="truncate flex-1 text-left mr-1" title={seat.category}>{seat.category}</span>
-                                <span className="font-bold">{seat.pax}</span>
+                            <div key={idx} className="flex justify-between w-full px-2 text-sm text-gray-700 font-medium">
+                                <span className="line-clamp-1 flex-1 text-left mr-1" title={seat.category}>{seat.category}</span>
+                                <span className="font-bold shrink-0">{seat.pax}</span>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className={`text-xs font-medium truncate w-full ${styles.text} bg-transparent mt-0.5`} title={table.category}>
+                    <p className={`text-sm font-semibold line-clamp-2 w-full ${styles.text} bg-transparent mt-1 min-h-[2.5rem] flex items-center justify-center`} title={table.category}>
                         {getDisplayCategory(table.category)}
                     </p>
                 )}
 
                 {table.notes && (
-                    <p className="text-[10px] text-gray-500 truncate w-full mt-0.5 px-2 bg-transparent italic" title={table.notes}>
+                    <p className="text-[10px] text-gray-500 line-clamp-1 w-full mt-0.5 px-2 bg-transparent italic" title={table.notes}>
                         {table.notes}
                     </p>
                 )}
