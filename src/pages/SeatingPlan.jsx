@@ -218,9 +218,6 @@ export default function SeatingPlan() {
                 throw new Error(`API error: ${response.statusText}`);
             }
 
-            // Update state AFTER successful save
-            setTables(updatedTables);
-
             alert(`批量导入完成！\n成功添加 ${newTables.length} 张桌次。`);
 
             // Reload from server to confirm
@@ -352,9 +349,6 @@ export default function SeatingPlan() {
             if (!response.ok) {
                 throw new Error(`API error: ${response.statusText}`);
             }
-
-            // Update state AFTER successful save
-            setTables(updatedTables);
 
             alert(`智能导入完成！\n成功: ${newTables.length} 张\n失败: ${errorCount} 张`);
 
