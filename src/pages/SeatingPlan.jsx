@@ -409,21 +409,23 @@ export default function SeatingPlan() {
                             </>
                         )}
 
-                        <div className="pt-4 flex justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                                取消
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                            >
-                                {editMode ? "更新桌次" : "创建桌次"}
-                            </button>
-                        </div>
+                    </div>
+
+                    <div className="pt-4 flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                            {editMode ? "更新桌次" : "创建桌次"}
+                        </button>
+                    </div>
                 </form>
             </Modal>
         </div>
