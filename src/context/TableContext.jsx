@@ -61,6 +61,21 @@ export function TableProvider({ children }) {
         }
     };
 
+    const updateTable = async (updatedTable) => {
+        const newTables = tables.map(t => t.id === updatedTable.id ? updatedTable : t);
+        setTables(newTables); // Optimistic
+
+        try {
+            await fetch('/api/tables', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTables),
+            });
+        } catch (err) {
+            console.error("Failed to update table:", err);
+        }
+    };
+
     const deleteTable = async (tableId) => {
         const updatedTables = tables.filter(t => t.id !== tableId);
         setTables(updatedTables);
@@ -83,6 +98,7 @@ export function TableProvider({ children }) {
         loading,
         error,
         addTable,
+        updateTable,
         deleteTable,
         refresh: fetchTables
     };

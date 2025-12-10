@@ -1,27 +1,61 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Search, Users, LayoutGrid } from "lucide-react";
 import { useTables } from "../context/TableContext";
 import TableCard from "../components/TableCard";
 import Modal from "../components/ui/Modal";
+import { CATEGORY_GROUPS } from "../data/categories";
 
 export default function SeatingPlan() {
-    const { tables, loading, error, addTable, deleteTable } = useTables();
+    const { tables, loading, error, addTable, updateTable, deleteTable } = useTables();
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // New Table Form State
-    const [newTable, setNewTable] = useState({
+    // Form State for Add/Edit
+    const [editMode, setEditMode] = useState(false);
+    const [currentTableId, setCurrentTableId] = useState(null);
+    const [formData, setFormData] = useState({
         name: "",
-        category: "Affiliate",
-        pax: 10
+        category: "属会 (Category A)", // Default to first group key or similar
+        pax: 10,
+        tableNumber: null
     });
+
+    // Reset form when modal opens/closes
+    useEffect(() => {
+        if (!isModalOpen) {
+            setEditMode(false);
+            setFormData({
+                name: "",
+                category: Object.keys(CATEGORY_GROUPS)[0] ? Object.values(CATEGORY_GROUPS)[0][0] : "Affiliate", // Default to first item
+                pax: 10,
+                tableNumber: null
+            });
+        }
+    }, [isModalOpen]);
 
     // Analytics Logic
     const stats = useMemo(() => {
         const totalTables = tables.length;
         const totalPax = tables.reduce((sum, t) => sum + (parseInt(t.pax) || 0), 0);
+
+        // Simplified category stats mapping based on the user's groups
         const byCategory = tables.reduce((acc, t) => {
-            acc[t.category] = (acc[t.category] || 0) + 1;
+            const cat = t.category || "Unknown";
+            // Check which group the category belongs to
+            let group = "Other";
+
+            // Check Key/Values from CATEGORY_GROUPS
+            if (CATEGORY_GROUPS["属会 (Category A)"].includes(cat)) group = "Affiliate";
+            else if (CATEGORY_GROUPS["其他社团 (Category B)"].includes(cat)) group = "Association";
+            else if (CATEGORY_GROUPS["其他 (Others)"].includes(cat)) group = "Individual";
+            else {
+                // Fallback checks
+                if (cat.includes("属会") || cat.includes("Affiliate")) group = "Affiliate";
+                else if (cat.includes("社团") || cat.includes("Association")) group = "Association";
+                else if (cat.includes("个人") || cat.includes("Individual")) group = "Individual";
+            }
+
+            acc[group] = (acc[group] || 0) + 1;
             return acc;
         }, {});
         return { totalTables, totalPax, byCategory };
@@ -33,21 +67,39 @@ export default function SeatingPlan() {
         t.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleAddTable = async (e) => {
-        e.preventDefault();
-        if (!newTable.name) return;
-
-        // Auto-generate number if needed (simplified logic)
-        const tableNumber = tables.length + 1;
-
-        await addTable({
-            ...newTable,
-            tableNumber: tableNumber,
-            region: "Main Hall" // Default for now
+    const handleEditClick = (table) => {
+        setEditMode(true);
+        setCurrentTableId(table.id);
+        setFormData({
+            name: table.name,
+            category: table.category,
+            pax: table.pax,
+            tableNumber: table.tableNumber
         });
+        setIsModalOpen(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.name) return;
+
+        if (editMode && currentTableId) {
+            // Update Existing
+            await updateTable({
+                id: currentTableId,
+                ...formData
+            });
+        } else {
+            // Add New
+            const tableNumber = tables.length > 0 ? Math.max(...tables.map(t => t.tableNumber || 0)) + 1 : 1;
+            await addTable({
+                ...formData,
+                tableNumber: tableNumber,
+                region: "Main Hall"
+            });
+        }
 
         setIsModalOpen(false);
-        setNewTable({ name: "", category: "Affiliate", pax: 10 });
     };
 
     if (loading) return <div className="p-10 text-center">正在加载席位数据...</div>;
@@ -102,7 +154,7 @@ export default function SeatingPlan() {
                     <div className="flex gap-2 text-xs">
                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">属会: {stats.byCategory['Affiliate'] || 0}</span>
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded">社团: {stats.byCategory['Association'] || 0}</span>
-                        <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">个人: {stats.byCategory['Individual'] || 0}</span>
+                        <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">个人/其他: {(stats.byCategory['Individual'] || 0) + (stats.byCategory['Other'] || 0)}</span>
                     </div>
                 </div>
             </div>
@@ -123,39 +175,53 @@ export default function SeatingPlan() {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     {filteredTables.map(table => (
-                        <TableCard key={table.id} table={table} onDelete={deleteTable} />
+                        <TableCard
+                            key={table.id}
+                            table={table}
+                            onEdit={handleEditClick}
+                            onDelete={deleteTable}
+                        />
                     ))}
                 </div>
             )}
 
-            {/* Add Table Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="添加新桌次">
-                <form onSubmit={handleAddTable} className="space-y-4">
+            {/* Add/Edit Table Modal */}
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editMode ? "编辑桌次" : "添加新桌次"}>
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">桌名 / 编号</label>
                         <input
                             type="text"
                             required
-                            value={newTable.name}
-                            onChange={e => setNewTable({ ...newTable, name: e.target.value })}
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                             className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
                             placeholder="例如: VIP 1"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">类别</label>
-                            <select
-                                value={newTable.category}
-                                onChange={e => setNewTable({ ...newTable, category: e.target.value })}
-                                className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
-                            >
-                                <option value="Affiliate">属会</option>
-                                <option value="Association">社团</option>
-                                <option value="Individual">个人</option>
-                            </select>
+                            <label className="block text-sm font-medium mb-1">类别 (选择或输入)</label>
+                            <div className="relative">
+                                <select
+                                    value={formData.category}
+                                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                    className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
+                                >
+                                    {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
+                                        <optgroup key={group} label={group}>
+                                            {items.map(item => (
+                                                <option key={item} value={item}>{item}</option>
+                                            ))}
+                                        </optgroup>
+                                    ))}
+                                    <option value="Custom">自定义 (Custom)...</option>
+                                </select>
+                            </div>
+                            {/* Simple Logic: If user selects Custom, or types something else? For now select only is safest */}
                         </div>
+
                         <div>
                             <label className="block text-sm font-medium mb-1">容纳人数 (Pax)</label>
                             <input
@@ -163,8 +229,8 @@ export default function SeatingPlan() {
                                 required
                                 min="1"
                                 max="20"
-                                value={newTable.pax}
-                                onChange={e => setNewTable({ ...newTable, pax: parseInt(e.target.value) || 0 })}
+                                value={formData.pax}
+                                onChange={e => setFormData({ ...formData, pax: parseInt(e.target.value) || 0 })}
                                 className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
                             />
                         </div>
@@ -182,7 +248,7 @@ export default function SeatingPlan() {
                             type="submit"
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                         >
-                            创建桌次
+                            {editMode ? "更新桌次" : "创建桌次"}
                         </button>
                     </div>
                 </form>
