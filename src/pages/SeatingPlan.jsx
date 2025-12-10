@@ -27,9 +27,10 @@ export default function SeatingPlan() {
             setEditMode(false);
             setFormData({
                 name: "",
-                category: Object.keys(CATEGORY_GROUPS)[0] ? Object.values(CATEGORY_GROUPS)[0][0] : "Affiliate", // Default to first item
+                category: Object.keys(CATEGORY_GROUPS)[0] ? Object.values(CATEGORY_GROUPS)[0][0] : "Affiliate",
                 pax: 10,
-                tableNumber: null
+                tableNumber: null,
+                notes: ""
             });
         }
     }, [isModalOpen]);
@@ -75,7 +76,8 @@ export default function SeatingPlan() {
             name: table.name,
             category: table.category,
             pax: table.pax,
-            tableNumber: table.tableNumber
+            tableNumber: table.tableNumber,
+            notes: table.notes || ""
         });
         setIsModalOpen(true);
     };
@@ -285,6 +287,16 @@ export default function SeatingPlan() {
                                 value={formData.pax}
                                 onChange={e => setFormData({ ...formData, pax: parseInt(e.target.value) || 0 })}
                                 className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d]"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1">备注 (混合类别说明)</label>
+                            <textarea
+                                placeholder="例如: 8位记者 + 2位工作人员"
+                                value={formData.notes || ""}
+                                onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                                className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] h-20 text-sm"
                             />
                         </div>
                     </div>

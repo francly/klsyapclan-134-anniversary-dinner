@@ -80,13 +80,18 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
             </div>
 
             {/* Table Name */}
-            <div className="text-center w-full px-1">
+            <div className="text-center w-full px-1 flex flex-col items-center">
                 <h3 className="font-bold text-sm truncate w-full bg-transparent" title={table.name}>
                     {table.name}
                 </h3>
-                <p className={`text-xs font-medium truncate ${styles.text} bg-transparent`} title={table.category}>
+                <p className={`text-xs font-medium truncate w-full ${styles.text} bg-transparent`} title={table.category}>
                     {getDisplayCategory(table.category)}
                 </p>
+                {table.notes && (
+                    <p className="text-[10px] text-gray-500 truncate w-full mt-0.5 px-2 bg-transparent italic" title={table.notes}>
+                        {table.notes}
+                    </p>
+                )}
             </div>
 
             {/* Pax Controls */}
