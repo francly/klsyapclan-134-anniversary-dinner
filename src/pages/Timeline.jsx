@@ -11,6 +11,12 @@ export default function Timeline() {
     // Get all unique members for filter
     const allMembers = Array.from(new Set(committee.flatMap(c => c.members)));
 
+    // Get available months from tasks
+    const availableMonths = Array.from(new Set(tasks
+        .filter(t => t.dueDate)
+        .map(t => format(new Date(t.dueDate), "yyyy-MM"))
+    )).sort();
+
     // Filter States
     const [selectedMonth, setSelectedMonth] = useState(""); // YYYY-MM
     const [filterStatus, setFilterStatus] = useState("all");
@@ -84,13 +90,22 @@ export default function Timeline() {
 
                         {/* Filter Toolbar */}
                         <div className="flex flex-wrap items-center gap-2">
-                            {/* Month Picker */}
-                            <input
-                                type="month"
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="px-3 py-1.5 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-[#333] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none w-36"
-                            />
+                            {/* Month Filter (Custom Dropdown) */}
+                            <div className="relative">
+                                <select
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="px-3 py-1.5 pl-8 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-[#333] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none min-w-[130px]"
+                                >
+                                    <option value="">所有月份</option>
+                                    {availableMonths.map(month => (
+                                        <option key={month} value={month}>
+                                            {format(parseISO(month), "yyyy年MM月", { locale: zhCN })}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Calendar className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
 
                             {/* Status Filter */}
                             <select
@@ -135,8 +150,8 @@ export default function Timeline() {
                                 onClick={clearFilters}
                                 disabled={!hasFilters}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg border transition-all ${hasFilters
-                                        ? "bg-white dark:bg-[#2d2d2d] border-gray-200 dark:border-[#333] text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#333] shadow-sm cursor-pointer"
-                                        : "bg-transparent border-transparent text-gray-300 dark:text-gray-700 cursor-not-allowed hidden md:flex"
+                                    ? "bg-white dark:bg-[#2d2d2d] border-gray-200 dark:border-[#333] text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#333] shadow-sm cursor-pointer"
+                                    : "bg-transparent border-transparent text-gray-300 dark:text-gray-700 cursor-not-allowed hidden md:flex"
                                     }`}
                             >
                                 <X className="w-3.5 h-3.5" />
