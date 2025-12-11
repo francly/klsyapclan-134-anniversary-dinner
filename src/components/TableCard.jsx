@@ -39,7 +39,7 @@ export default function TableCard({ table, onEdit, onUpdate, onDelete }) {
 
     return (
         <div
-            className={`relative group p-4 rounded-xl border-2 flex flex-col items-center justify-center shadow-sm transition-all hover:shadow-md cursor-pointer bg-white ${styles.border}`}
+            className={`relative group p-4 rounded-xl border-2 flex flex-col items-center justify-center shadow-sm transition-all hover:shadow-md cursor-pointer bg-white dark:bg-[#1f1f1f] dark:border-gray-700 ${styles.border}`}
             style={{ width: '200px', height: '250px' }}
             onClick={() => onEdit(table)}
         >

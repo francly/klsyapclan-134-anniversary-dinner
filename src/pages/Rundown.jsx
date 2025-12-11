@@ -185,8 +185,8 @@ export default function Rundown() {
                                 </div>
                             </div>
 
-                            {/* Table */}
-                            <div className="overflow-visible">
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-visible">
                                 <table className="w-full">
                                     <thead className="bg-gray-50 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-[#333]">
                                         <tr>
@@ -309,6 +309,87 @@ export default function Rundown() {
                                         })}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="md:hidden divide-y divide-gray-200 dark:divide-[#2d2d2d] space-y-4">
+                                {day.slots.map((slot, slotIndex) => {
+                                    const [startTime, endTime] = slot.time.split(' - ').map(t => t.trim());
+
+                                    const updateTime = (type, newTime) => {
+                                        let newRange;
+                                        if (type === 'start') newRange = `${newTime} - ${endTime || newTime}`;
+                                        else newRange = `${startTime || newTime} - ${newTime}`;
+                                        handleSlotChange(dayIndex, slotIndex, 'time', newRange);
+                                    };
+
+                                    return (
+                                        <div key={slot.id} className="p-4 bg-white dark:bg-[#1f1f1f] space-y-4">
+                                            {/* Header: Time and Action */}
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex flex-col gap-1">
+                                                        <input
+                                                            type="time"
+                                                            value={startTime || ''}
+                                                            onChange={(e) => updateTime('start', e.target.value)}
+                                                            className="text-lg font-bold bg-transparent text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 w-[5.5rem] p-0"
+                                                        />
+                                                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">Start</span>
+                                                    </div>
+                                                    <span className="text-gray-300 dark:text-gray-600">to</span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <input
+                                                            type="time"
+                                                            value={endTime || ''}
+                                                            onChange={(e) => updateTime('end', e.target.value)}
+                                                            className="text-lg font-bold bg-transparent text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 w-[5.5rem] p-0"
+                                                        />
+                                                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">End</span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => deleteSlot(dayIndex, slotIndex)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+
+                                            {/* Details Input */}
+                                            <input
+                                                type="text"
+                                                value={slot.activity}
+                                                onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
+                                                className="w-full text-base font-medium bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 text-gray-900 dark:text-white transition-colors py-1 placeholder-gray-400"
+                                                placeholder="输入活动详情..."
+                                            />
+
+                                            {/* Responsible People - Reuse Component */}
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">负责人</label>
+                                                <ResponsiblePeopleEditor
+                                                    people={slot.responsiblePeople}
+                                                    suggestions={committeeMembers}
+                                                    onAdd={(person) => handlePersonAdd(dayIndex, slotIndex, person)}
+                                                    onRemove={(personIndex) => handlePersonRemove(dayIndex, slotIndex, personIndex)}
+                                                />
+                                            </div>
+
+                                            {/* Remarks */}
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">备注</label>
+                                                <input
+                                                    type="text"
+                                                    value={slot.remark || ''}
+                                                    onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'remark', e.target.value)}
+                                                    className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 py-1 transition-colors placeholder-gray-400"
+                                                    placeholder="添加备注..."
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             {/* Add Slot Button */}
