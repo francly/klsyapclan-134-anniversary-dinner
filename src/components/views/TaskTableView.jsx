@@ -3,10 +3,13 @@ import { zhCN } from "date-fns/locale";
 import { CheckCircle2, Circle, Star, User, Calendar, Clock } from "lucide-react";
 import { committee } from "../../data/committee";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import DatePickerPopover from "../ui/DatePickerPopover";
 
 export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
     const [editingDateId, setEditingDateId] = useState(null);
+    // Track which task has the date popover open
+    const [activeDatePopoverId, setActiveDatePopoverId] = useState(null);
 
     const StatusPill = ({ status }) => {
         const getStatusConfig = (s) => {
@@ -119,32 +122,24 @@ export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
                                 className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] text-gray-600 dark:text-gray-400 font-mono text-xs relative group/date cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    setEditingDateId(task.id);
+                                    // Toggle popover
+                                    setActiveDatePopoverId(activeDatePopoverId === task.id ? null : task.id);
                                 }}
                             >
-                                {editingDateId === task.id ? (
-                                    <input
-                                        type="date"
-                                        autoFocus
-                                        className="w-full h-full bg-white dark:bg-[#111111] border border-blue-500 rounded px-1 outline-none text-gray-900 dark:text-white"
-                                        value={task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onChange={(e) => {
-                                            e.stopPropagation();
-                                            onUpdate(task.id, { dueDate: e.target.value });
-                                            setEditingDateId(null);
-                                        }}
-                                        onBlur={() => setEditingDateId(null)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === 'Escape') {
-                                                setEditingDateId(null);
-                                            }
-                                        }}
-                                    />
-                                ) : (
-                                    <span className={!task.dueDate ? "text-gray-300 group-hover:text-gray-400" : ""}>
-                                        {task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "设置日期"}
-                                    </span>
+                                <span className={!task.dueDate ? "text-gray-300 group-hover:text-gray-400" : ""}>
+                                    {task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "设置日期"}
+                                </span>
+
+                                {activeDatePopoverId === task.id && (
+                                    <div onClick={(e) => e.stopPropagation()} className="absolute top-full left-0 z-50">
+                                        <DatePickerPopover
+                                            onClose={() => setActiveDatePopoverId(null)}
+                                            onSelect={(date) => {
+                                                onUpdate(task.id, { dueDate: date.toISOString() });
+                                                setActiveDatePopoverId(null);
+                                            }}
+                                        />
+                                    </div>
                                 )}
                             </td>
                             <td className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d]">
