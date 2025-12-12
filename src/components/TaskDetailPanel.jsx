@@ -4,10 +4,12 @@ import { zhCN } from "date-fns/locale";
 import { committee } from "../data/committee";
 import { cn } from "../lib/utils";
 import { useState, useRef, useEffect } from "react";
+import DatePickerPopover from "./ui/DatePickerPopover";
 
 export default function TaskDetailPanel({ task, onClose, onUpdate, onDelete, onAddComment }) {
     const [commentText, setCommentText] = useState("");
     const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+    const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
     const assigneeRef = useRef(null);
 
     useEffect(() => {
@@ -117,14 +119,19 @@ export default function TaskDetailPanel({ task, onClose, onUpdate, onDelete, onA
                             icon={Calendar}
                             label="添加截止日期"
                             value={task.dueDate ? format(new Date(task.dueDate), "yyyy年MM月dd日", { locale: zhCN }) : null}
-                            onClick={() => document.getElementById('date-picker-detail').showPicker()}
+                            onClick={() => setIsDatePopoverOpen(!isDatePopoverOpen)}
                         />
-                        <input
-                            id="date-picker-detail"
-                            type="date"
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                            onChange={(e) => onUpdate(task.id, { dueDate: e.target.value })}
-                        />
+                        {isDatePopoverOpen && (
+                            <div className="absolute top-10 left-4 z-50">
+                                <DatePickerPopover
+                                    onClose={() => setIsDatePopoverOpen(false)}
+                                    onSelect={(date) => {
+                                        onUpdate(task.id, { dueDate: date.toISOString() });
+                                        setIsDatePopoverOpen(false);
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Repeat */}
