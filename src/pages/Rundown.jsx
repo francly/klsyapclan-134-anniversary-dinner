@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
 import AutoTextarea from '../components/ui/AutoTextarea';
-import { formatTime12 } from "../utils/timeHelpers";
+import { formatTime12, getTimePeriod, getPeriodLabel } from "../utils/timeHelpers";
 
 export default function Rundown() {
     const [rundown, setRundown] = useState([]);
@@ -212,8 +212,17 @@ export default function Rundown() {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-[#2d2d2d]">
                                         {day.slots.map((slot, slotIndex) => {
-                                            // Parse time range "HH:mm - HH:mm" to start and end
+                                            // Parse time range
                                             const [startTime, endTime] = slot.time.split(' - ').map(t => t.trim());
+
+                                            // Determine period for current slot
+                                            const currentPeriod = getTimePeriod(startTime);
+                                            // Determine period for previous slot (if exists)
+                                            const prevSlot = slotIndex > 0 ? day.slots[slotIndex - 1] : null;
+                                            const prevStartTime = prevSlot ? prevSlot.time.split(' - ')[0].trim() : null;
+                                            const prevPeriod = prevSlot ? getTimePeriod(prevStartTime) : null;
+
+                                            const showDivider = currentPeriod !== prevPeriod;
 
                                             const updateTime = (type, newTime) => {
                                                 let newRange;
@@ -240,83 +249,93 @@ export default function Rundown() {
                                             }
 
                                             return (
-                                                <tr key={slot.id} className="group hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors">
-                                                    {/* Time Inputs */}
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="flex flex-col gap-1">
-                                                                <input
-                                                                    type="time"
-                                                                    value={startTime || ''}
-                                                                    onChange={(e) => updateTime('start', e.target.value)}
-                                                                    className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                                />
-                                                                <span className="text-[10px] text-gray-400 font-mono text-center">
-                                                                    {formatTime12(startTime)}
-                                                                </span>
+                                                <Fragment key={slot.id}>
+                                                    {showDivider && (
+                                                        <tr className="bg-gray-100 dark:bg-[#252525]">
+                                                            <td colSpan="6" className="px-6 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                {getPeriodLabel(currentPeriod)}
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                    <tr className="group hover:bg-gray-50 dark:hover:bg-[#2d2d2d] transition-colors">
+                                                        {/* Time Inputs */}
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex flex-col gap-1 items-center">
+                                                                    <input
+                                                                        type="time"
+                                                                        value={startTime || ''}
+                                                                        onChange={(e) => updateTime('start', e.target.value)}
+                                                                        className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                                    />
+                                                                    <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
+                                                                        {formatTime12(startTime)}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-gray-400 self-start mt-2">-</span>
+                                                                <div className="flex flex-col gap-1 items-center">
+                                                                    <input
+                                                                        type="time"
+                                                                        value={endTime || ''}
+                                                                        onChange={(e) => updateTime('end', e.target.value)}
+                                                                        className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                                    />
+                                                                    <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
+                                                                        {formatTime12(endTime)}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <span className="text-gray-400">-</span>
-                                                            <div className="flex flex-col gap-1">
-                                                                <input
-                                                                    type="time"
-                                                                    value={endTime || ''}
-                                                                    onChange={(e) => updateTime('end', e.target.value)}
-                                                                    className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                                />
-                                                                <span className="text-[10px] text-gray-400 font-mono text-center">
-                                                                    {formatTime12(endTime)}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Duration */}
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-medium">
-                                                        {duration}
-                                                    </td>
+                                                        {/* Duration */}
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-medium">
+                                                            {duration}
+                                                        </td>
 
-                                                    {/* Activity */}
-                                                    <td className="px-6 py-4">
-                                                        <AutoTextarea
-                                                            value={slot.activity}
-                                                            onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
-                                                            minRows={2}
-                                                            className="w-full px-2 py-1 text-sm text-gray-900 dark:text-white bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-[#444] focus:border-blue-500 rounded outline-none resize-none transition-colors"
-                                                        />
-                                                    </td>
+                                                        {/* Activity Name */}
+                                                        <td className="px-6 py-4">
+                                                            <AutoTextarea
+                                                                value={slot.activity}
+                                                                onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
+                                                                minRows={2}
+                                                                placeholder="活动名称"
+                                                                className="w-full px-2 py-1 text-sm text-gray-900 dark:text-white bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-[#444] focus:border-blue-500 rounded outline-none resize-none transition-colors"
+                                                            />
+                                                        </td>
 
-                                                    {/* Responsible People */}
-                                                    <td className="px-6 py-4">
-                                                        <ResponsiblePeopleEditor
-                                                            people={slot.responsiblePeople}
-                                                            suggestions={committeeMembers}
-                                                            onAdd={(person) => handlePersonAdd(dayIndex, slotIndex, person)}
-                                                            onRemove={(personIndex) => handlePersonRemove(dayIndex, slotIndex, personIndex)}
-                                                        />
-                                                    </td>
+                                                        {/* Responsible People */}
+                                                        <td className="px-6 py-4">
+                                                            <ResponsiblePeopleEditor
+                                                                people={slot.responsiblePeople}
+                                                                suggestions={committeeMembers}
+                                                                onAdd={(person) => handlePersonAdd(dayIndex, slotIndex, person)}
+                                                                onRemove={(personIndex) => handlePersonRemove(dayIndex, slotIndex, personIndex)}
+                                                            />
+                                                        </td>
 
-                                                    {/* Remark */}
-                                                    <td className="px-6 py-4">
-                                                        <input
-                                                            type="text"
-                                                            value={slot.remark}
-                                                            onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'remark', e.target.value)}
-                                                            placeholder="备注..."
-                                                            className="w-full px-2 py-1 text-sm text-gray-600 dark:text-gray-400 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-[#444] focus:border-blue-500 rounded outline-none transition-colors"
-                                                        />
-                                                    </td>
+                                                        {/* Remark */}
+                                                        <td className="px-6 py-4">
+                                                            <input
+                                                                type="text"
+                                                                value={slot.remark}
+                                                                onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'remark', e.target.value)}
+                                                                placeholder="备注..."
+                                                                className="w-full px-2 py-1 text-sm text-gray-600 dark:text-gray-400 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-[#444] focus:border-blue-500 rounded outline-none transition-colors"
+                                                            />
+                                                        </td>
 
-                                                    {/* Delete Button */}
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => deleteSlot(dayIndex, slotIndex)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                            title="删除"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                        {/* Delete Button */}
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button
+                                                                onClick={() => deleteSlot(dayIndex, slotIndex)}
+                                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition-all rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                title="删除"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </Fragment>
                                             );
                                         })}
                                     </tbody>
@@ -328,6 +347,13 @@ export default function Rundown() {
                                 {day.slots.map((slot, slotIndex) => {
                                     const [startTime, endTime] = slot.time.split(' - ').map(t => t.trim());
 
+                                    // Determine period
+                                    const currentPeriod = getTimePeriod(startTime);
+                                    const prevSlot = slotIndex > 0 ? day.slots[slotIndex - 1] : null;
+                                    const prevStartTime = prevSlot ? prevSlot.time.split(' - ')[0].trim() : null;
+                                    const prevPeriod = prevSlot ? getTimePeriod(prevStartTime) : null;
+                                    const showDivider = currentPeriod !== prevPeriod;
+
                                     const updateTime = (type, newTime) => {
                                         let newRange;
                                         if (type === 'start') newRange = `${newTime} - ${endTime || newTime}`;
@@ -336,74 +362,81 @@ export default function Rundown() {
                                     };
 
                                     return (
-                                        <div key={slot.id} className="p-4 bg-white dark:bg-[#1f1f1f] space-y-4">
-                                            {/* Header: Time and Action */}
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex flex-col gap-1">
-                                                        <input
-                                                            type="time"
-                                                            value={startTime || ''}
-                                                            onChange={(e) => updateTime('start', e.target.value)}
-                                                            className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                        />
-                                                        <span className="text-[10px] text-gray-400 font-mono text-center">
-                                                            {formatTime12(startTime)}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-gray-400 text-sm mt-[-1rem]">-</span>
-                                                    <div className="flex flex-col gap-1">
-                                                        <input
-                                                            type="time"
-                                                            value={endTime || ''}
-                                                            onChange={(e) => updateTime('end', e.target.value)}
-                                                            className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                        />
-                                                        <span className="text-[10px] text-gray-400 font-mono text-center">
-                                                            {formatTime12(endTime)}
-                                                        </span>
-                                                    </div>
+                                        <Fragment key={slot.id}>
+                                            {showDivider && (
+                                                <div className="px-4 py-2 bg-gray-100 dark:bg-[#252525] text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider rounded-md mx-4 mt-4">
+                                                    {getPeriodLabel(currentPeriod)}
                                                 </div>
-                                                <button
-                                                    onClick={() => deleteSlot(dayIndex, slotIndex)}
-                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
+                                            )}
+                                            <div className="p-4 bg-white dark:bg-[#1f1f1f] space-y-4 rounded-xl">
+                                                {/* Header: Time and Action */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            <input
+                                                                type="time"
+                                                                value={startTime || ''}
+                                                                onChange={(e) => updateTime('start', e.target.value)}
+                                                                className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                            />
+                                                            <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
+                                                                {formatTime12(startTime)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-gray-400 text-sm mt-[-1rem]">-</span>
+                                                        <div className="flex flex-col gap-1 items-center">
+                                                            <input
+                                                                type="time"
+                                                                value={endTime || ''}
+                                                                onChange={(e) => updateTime('end', e.target.value)}
+                                                                className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                            />
+                                                            <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
+                                                                {formatTime12(endTime)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => deleteSlot(dayIndex, slotIndex)}
+                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
 
-                                            {/* Details Input */}
-                                            <AutoTextarea
-                                                value={slot.activity}
-                                                onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
-                                                className="w-full text-base font-medium bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 text-gray-900 dark:text-white transition-colors py-1 placeholder-gray-400 resize-none outline-none"
-                                                placeholder="输入活动详情..."
-                                                minRows={1}
-                                            />
-
-                                            {/* Responsible People - Reuse Component */}
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">负责人</label>
-                                                <ResponsiblePeopleEditor
-                                                    people={slot.responsiblePeople}
-                                                    suggestions={committeeMembers}
-                                                    onAdd={(person) => handlePersonAdd(dayIndex, slotIndex, person)}
-                                                    onRemove={(personIndex) => handlePersonRemove(dayIndex, slotIndex, personIndex)}
+                                                {/* Details Input */}
+                                                <AutoTextarea
+                                                    value={slot.activity}
+                                                    onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
+                                                    className="w-full text-base font-medium bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 text-gray-900 dark:text-white transition-colors py-1 placeholder-gray-400 resize-none outline-none"
+                                                    placeholder="输入活动详情..."
+                                                    minRows={1}
                                                 />
-                                            </div>
 
-                                            {/* Remarks */}
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">备注</label>
-                                                <input
-                                                    type="text"
-                                                    value={slot.remark || ''}
-                                                    onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'remark', e.target.value)}
-                                                    className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 py-1 transition-colors placeholder-gray-400"
-                                                    placeholder="添加备注..."
-                                                />
+                                                {/* Responsible People - Reuse Component */}
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">负责人</label>
+                                                    <ResponsiblePeopleEditor
+                                                        people={slot.responsiblePeople}
+                                                        suggestions={committeeMembers}
+                                                        onAdd={(person) => handlePersonAdd(dayIndex, slotIndex, person)}
+                                                        onRemove={(personIndex) => handlePersonRemove(dayIndex, slotIndex, personIndex)}
+                                                    />
+                                                </div>
+
+                                                {/* Remarks */}
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">备注</label>
+                                                    <input
+                                                        type="text"
+                                                        value={slot.remark || ''}
+                                                        onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'remark', e.target.value)}
+                                                        className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 py-1 transition-colors placeholder-gray-400"
+                                                        placeholder="添加备注..."
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
+                                        </Fragment>
                                     );
                                 })}
                             </div>
