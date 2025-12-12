@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Users, LayoutGrid, Trash2 } from "lucide-react";
+import { Plus, Search, Users, LayoutGrid, Trash2, Edit2 } from "lucide-react";
 import { useTables } from "../context/TableContext";
 import TableCard from "../components/TableCard";
 import Modal from "../components/ui/Modal";
@@ -405,7 +405,7 @@ export default function SeatingPlan() {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <LayoutGrid className="w-8 h-8" />
-                        席位安排 <span className="text-sm font-normal text-gray-400 border px-1 rounded">v87</span>
+                        席位安排 <span className="text-sm font-normal text-gray-400 border px-1 rounded">v88</span>
                     </h1>
                     <p className="text-gray-500 mt-1">管理晚宴席位与桌次安排</p>
                 </div>
