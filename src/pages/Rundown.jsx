@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
+import AutoTextarea from '../components/ui/AutoTextarea';
 
 export default function Rundown() {
     const [rundown, setRundown] = useState([]);
@@ -265,10 +266,10 @@ export default function Rundown() {
 
                                                     {/* Activity */}
                                                     <td className="px-6 py-4">
-                                                        <textarea
+                                                        <AutoTextarea
                                                             value={slot.activity}
                                                             onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
-                                                            rows={2}
+                                                            minRows={2}
                                                             className="w-full px-2 py-1 text-sm text-gray-900 dark:text-white bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-[#444] focus:border-blue-500 rounded outline-none resize-none transition-colors"
                                                         />
                                                     </td>
@@ -357,12 +358,12 @@ export default function Rundown() {
                                             </div>
 
                                             {/* Details Input */}
-                                            <input
-                                                type="text"
+                                            <AutoTextarea
                                                 value={slot.activity}
                                                 onChange={(e) => handleSlotChange(dayIndex, slotIndex, 'activity', e.target.value)}
-                                                className="w-full text-base font-medium bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 text-gray-900 dark:text-white transition-colors py-1 placeholder-gray-400"
+                                                className="w-full text-base font-medium bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 text-gray-900 dark:text-white transition-colors py-1 placeholder-gray-400 resize-none outline-none"
                                                 placeholder="输入活动详情..."
+                                                minRows={1}
                                             />
 
                                             {/* Responsible People - Reuse Component */}
