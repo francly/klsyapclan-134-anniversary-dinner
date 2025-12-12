@@ -63,12 +63,12 @@ export default function Rundown() {
     }, []);
 
     // Debounced save
-    const saveRundown = (newData) => {
+    const saveRundown = (newData, immediate = false) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
 
-        saveTimeoutRef.current = setTimeout(() => {
+        const doSave = () => {
             fetch('/api/rundown', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,13 @@ export default function Rundown() {
                 .then(res => res.json())
                 .then(data => console.log("Saved:", data))
                 .catch(err => console.error("Save failed:", err));
-        }, 1000);
+        };
+
+        if (immediate) {
+            doSave();
+        } else {
+            saveTimeoutRef.current = setTimeout(doSave, 1000);
+        }
     };
 
     const handleSlotChange = (dayIndex, slotIndex, field, value) => {
@@ -116,10 +122,17 @@ export default function Rundown() {
 
     const deleteSlot = (dayIndex, slotIndex) => {
         if (window.confirm("确定要删除这个活动吗？")) {
-            const newRundown = [...rundown];
-            newRundown[dayIndex].slots.splice(slotIndex, 1);
+            const newRundown = rundown.map((day, dIdx) => {
+                if (dIdx === dayIndex) {
+                    return {
+                        ...day,
+                        slots: day.slots.filter((_, sIdx) => sIdx !== slotIndex)
+                    };
+                }
+                return day;
+            });
             setRundown(newRundown);
-            saveRundown(newRundown);
+            saveRundown(newRundown, true); // Immediate save
         }
     };
 

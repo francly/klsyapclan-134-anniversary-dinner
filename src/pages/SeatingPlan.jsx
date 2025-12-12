@@ -8,27 +8,7 @@ import { CATEGORY_GROUPS as DEFAULT_CATEGORY_GROUPS } from "../data/categories";
 import { getCategoryGroup, getGroupStyles, CATEGORY_NAMES } from "../utils/categoryHelpers";
 
 // Batch import data
-const IMPORT_DATA = `檳城南陽堂葉氏宗祠	10	1
-霹靂太平南陽堂葉氏宗祠	5	2
-隆雪南陽葉氏公會	40	3/4/5/6
-雪蘭莪沙登、無拉港南陽葉氏宗親會	10	7
-森州南陽葉氏宗親聯宗會	10	8
-波德申葉氏聯宗會	10	9
-馬六甲吳興南陽堂沈葉尤宗祠	2	10
-柔佛州葉氏宗親會	10	11
-柔南南陽葉氏宗親會	10	12
-沙巴州西海岸葉氏宗親會	5	13
-沙巴州山打根葉氏宗親會	2	14
-沙巴州斗湖葉氏宗親會	10	15
-砂拉越美里葉氏	20	16
-砂拉越詩巫省南陽葉氏宗親會	5	17
-砂拉越泗里街省葉氏公會	2	18
-砂拉越南陽葉氏宗親會	10	19
-雪州蒲種葉氏公會	10	20
-馬來西亞南陽葉氏宗親總會	5	21
-雪蘭莪沈氏宗祠	10	22
-吉隆玻沈氏宗祠	10	23
-馬來西亞尤氏宗親總會	10	24`;
+// Batch import data removed
 
 export default function SeatingPlan() {
     const { tables, loading, error, addTable, updateTable, deleteTable } = useTables();
@@ -170,86 +150,7 @@ export default function SeatingPlan() {
         setIsModalOpen(false);
     };
 
-    // Batch Import Handler (FIXED - no race condition)
-    const handleBatchImport = async () => {
-        if (!window.confirm('确定要批量导入22个组织的桌次数据吗？\n\n这将添加24张新桌次。')) return;
 
-        const lines = IMPORT_DATA.trim().split('\n');
-        const newTables = [];
-        let errorCount = 0;
-        const errors = [];
-
-        // First, build all table objects
-        for (const line of lines) {
-            const parts = line.split('\t');
-            if (parts.length !== 3) continue;
-
-            const [name, pax, tableNumbers] = parts;
-            const paxNum = parseInt(pax) || 2;
-
-            try {
-                // Handle multiple table numbers (e.g., "3/4/5/6")
-                if (tableNumbers.includes('/')) {
-                    const numbers = tableNumbers.split('/').map(n => parseInt(n.trim()));
-                    const paxPerTable = Math.floor(paxNum / numbers.length);
-                    const remainder = paxNum % numbers.length;
-
-                    for (let idx = 0; idx < numbers.length; idx++) {
-                        newTables.push({
-                            id: Date.now() + Math.random(), // Unique ID
-                            name: String(numbers[idx]), // Store table number as name
-                            category: name.trim(),
-                            pax: paxPerTable + (idx < remainder ? 1 : 0),
-                            tableNumber: numbers[idx],
-                            region: 'Main Hall',
-                            notes: '',
-                            seats: [],
-                            guests: []
-                        });
-                    }
-                } else {
-                    newTables.push({
-                        id: Date.now() + Math.random(), // Unique ID
-                        name: tableNumbers.trim(), // Store table number as name
-                        category: name.trim(),
-                        pax: paxNum,
-                        tableNumber: parseInt(tableNumbers.trim()),
-                        region: 'Main Hall',
-                        notes: '',
-                        seats: [],
-                        guests: []
-                    });
-                }
-            } catch (error) {
-                errorCount++;
-                errors.push(`${name.trim()}: ${error.message}`);
-                console.error('Parse error:', error);
-            }
-        }
-
-        // Now add all tables at once
-        try {
-            const updatedTables = [...tables, ...newTables];
-
-            const response = await fetch('/api/tables', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedTables),
-            });
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.statusText}`);
-            }
-
-            alert(`批量导入完成！\n成功添加 ${newTables.length} 张桌次。`);
-
-            // Reload from server to confirm
-            window.location.reload();
-        } catch (error) {
-            alert('保存失败: ' + error.message);
-            console.error('Save error:', error);
-        }
-    };
 
     // Clear All Handler (FIXED - direct save empty array)
     const handleClearAll = async () => {
@@ -421,13 +322,7 @@ export default function SeatingPlan() {
                             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#1f1f1f] dark:border-[#2d2d2d]"
                         />
                     </div>
-                    <button
-                        onClick={handleBatchImport}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
-                    >
-                        <Plus className="w-4 h-4" />
-                        批量导入
-                    </button>
+
                     <button
                         onClick={() => setIsCategoryManagerOpen(true)}
                         className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
