@@ -3,7 +3,7 @@ import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
 import AutoTextarea from '../components/ui/AutoTextarea';
-import { formatTime12, getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
+import { getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
 
 export default function Rundown() {
     const [rundown, setRundown] = useState([]);
