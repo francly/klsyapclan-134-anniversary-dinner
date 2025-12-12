@@ -3,7 +3,7 @@ import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
 import AutoTextarea from '../components/ui/AutoTextarea';
-import { formatTime12, getTimePeriod, getPeriodLabel } from "../utils/timeHelpers";
+import { formatTime12, getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
 
 export default function Rundown() {
     const [rundown, setRundown] = useState([]);
@@ -261,27 +261,27 @@ export default function Rundown() {
                                                         {/* Time Inputs */}
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="flex flex-col gap-1 items-center">
+                                                                <div className="flex items-center gap-1">
                                                                     <input
                                                                         type="time"
                                                                         value={startTime || ''}
                                                                         onChange={(e) => updateTime('start', e.target.value)}
                                                                         className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                                     />
-                                                                    <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
-                                                                        {formatTime12(startTime)}
+                                                                    <span className="text-[10px] font-mono font-bold px-1.5 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                                                        {getAmPm(startTime)}
                                                                     </span>
                                                                 </div>
-                                                                <span className="text-gray-400 self-start mt-2">-</span>
-                                                                <div className="flex flex-col gap-1 items-center">
+                                                                <span className="text-gray-400">-</span>
+                                                                <div className="flex items-center gap-1">
                                                                     <input
                                                                         type="time"
                                                                         value={endTime || ''}
                                                                         onChange={(e) => updateTime('end', e.target.value)}
                                                                         className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                                     />
-                                                                    <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
-                                                                        {formatTime12(endTime)}
+                                                                    <span className="text-[10px] font-mono font-bold px-1.5 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                                                        {getAmPm(endTime)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -372,27 +372,27 @@ export default function Rundown() {
                                                 {/* Header: Time and Action */}
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex flex-col gap-1 items-center">
+                                                        <div className="flex items-center gap-1">
                                                             <input
                                                                 type="time"
                                                                 value={startTime || ''}
                                                                 onChange={(e) => updateTime('start', e.target.value)}
                                                                 className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                             />
-                                                            <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
-                                                                {formatTime12(startTime)}
+                                                            <span className="text-[10px] font-mono font-bold px-1.5 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                                                {getAmPm(startTime)}
                                                             </span>
                                                         </div>
-                                                        <span className="text-gray-400 text-sm mt-[-1rem]">-</span>
-                                                        <div className="flex flex-col gap-1 items-center">
+                                                        <span className="text-gray-400 text-sm">-</span>
+                                                        <div className="flex items-center gap-1">
                                                             <input
                                                                 type="time"
                                                                 value={endTime || ''}
                                                                 onChange={(e) => updateTime('end', e.target.value)}
                                                                 className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                             />
-                                                            <span className="text-[10px] font-mono text-center px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold tracking-tight w-20 block">
-                                                                {formatTime12(endTime)}
+                                                            <span className="text-[10px] font-mono font-bold px-1.5 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                                                {getAmPm(endTime)}
                                                             </span>
                                                         </div>
                                                     </div>

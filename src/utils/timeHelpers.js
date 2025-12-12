@@ -8,6 +8,13 @@ export const formatTime12 = (timeStr) => {
     return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
 };
 
+// Helper to get just AM or PM
+export const getAmPm = (timeStr) => {
+    if (!timeStr) return "";
+    const [h] = timeStr.split(':').map(Number);
+    return h >= 12 ? 'PM' : 'AM';
+};
+
 // Helper to get time period (morning, afternoon, evening)
 export const getTimePeriod = (timeStr) => {
     if (!timeStr) return "morning"; // default
