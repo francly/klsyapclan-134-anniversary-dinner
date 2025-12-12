@@ -148,7 +148,7 @@ export default function Rundown() {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
                         <ClipboardList className="w-8 h-8 text-blue-500" />
-                        活动执行清单 (Rundown)
+                        活动执行清单 (Rundown) <span className="text-xs text-blue-500 font-mono border border-blue-200 rounded px-1 group-hover:bg-blue-50">v85</span>
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400">
                         管理详细的活动执行计划、负责人员和备注信息
