@@ -10,17 +10,21 @@ export const CATEGORY_NAMES = {
  * Determines which broad group a specific category belongs to.
  * Checks if the exact category name exists in the predefined arrays in CATEGORY_GROUPS.
  * @param {string} categoryName - The specific category name (e.g., "吉隆坡沈氏宗祠")
+ * @param {object} [groupsData] - Optional dynamic category groups object
  * @returns {string} - "属会宗亲会", "其他社团", or "其他"
  */
-export const getCategoryGroup = (categoryName) => {
+export const getCategoryGroup = (categoryName, groupsData = null) => {
     if (!categoryName) return CATEGORY_NAMES.OTHER;
-    if (!CATEGORY_GROUPS) return CATEGORY_NAMES.OTHER; // Safety check
+
+    // Use dynamic data if provided, otherwise fallback to static
+    const sourceGroups = groupsData || CATEGORY_GROUPS;
+    if (!sourceGroups) return CATEGORY_NAMES.OTHER;
 
     // Check specific groups first (Use optional chaining)
-    if (CATEGORY_GROUPS["属会 (Category A)"]?.includes(categoryName)) {
+    if (sourceGroups["属会 (Category A)"]?.includes(categoryName)) {
         return CATEGORY_NAMES.AFFILIATE;
     }
-    if (CATEGORY_GROUPS["其他社团 (Category B)"]?.includes(categoryName)) {
+    if (sourceGroups["其他社团 (Category B)"]?.includes(categoryName)) {
         return CATEGORY_NAMES.ASSOCIATION;
     }
 

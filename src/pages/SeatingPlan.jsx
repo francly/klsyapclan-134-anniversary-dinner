@@ -3,7 +3,8 @@ import { Plus, Search, Users, LayoutGrid, Trash2 } from "lucide-react";
 import { useTables } from "../context/TableContext";
 import TableCard from "../components/TableCard";
 import Modal from "../components/ui/Modal";
-import { CATEGORY_GROUPS } from "../data/categories";
+import CategoryManager from "../components/CategoryManager";
+import { CATEGORY_GROUPS as DEFAULT_CATEGORY_GROUPS } from "../data/categories";
 import { getCategoryGroup, getGroupStyles, CATEGORY_NAMES } from "../utils/categoryHelpers";
 
 // Batch import data
@@ -39,6 +40,8 @@ export default function SeatingPlan() {
     const [currentTableId, setCurrentTableId] = useState(null);
     const [isMixedMode, setIsMixedMode] = useState(false);
     const [isSmartImportOpen, setIsSmartImportOpen] = useState(false);
+    const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+    const [categories, setCategories] = useState(DEFAULT_CATEGORY_GROUPS);
     const [pasteData, setPasteData] = useState('');
     const [formData, setFormData] = useState({
         name: "",
@@ -49,6 +52,24 @@ export default function SeatingPlan() {
         seats: [] // Array of { category, pax }
     });
 
+    // Fetch categories on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/categories');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Object.keys(data).length > 0) {
+                        setCategories(data);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch categories", err);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     // Reset form when modal opens/closes
     useEffect(() => {
         if (!isModalOpen) {
@@ -56,14 +77,14 @@ export default function SeatingPlan() {
             setIsMixedMode(false);
             setFormData({
                 name: "",
-                category: Object.keys(CATEGORY_GROUPS)[0] ? Object.values(CATEGORY_GROUPS)[0][0] : "Affiliate",
+                category: Object.keys(categories)[0] ? Object.values(categories)[0][0] : "Affiliate",
                 pax: 10,
                 tableNumber: null,
                 notes: "",
                 seats: []
             });
         }
-    }, [isModalOpen]);
+    }, [isModalOpen, categories]);
 
     // Analytics Logic
     const stats = useMemo(() => {
@@ -73,19 +94,21 @@ export default function SeatingPlan() {
         const byCategory = tables.reduce((acc, t) => {
             const cat = t.category || "Unknown";
             let group = "Other";
-            if (CATEGORY_GROUPS["属会 (Category A)"]?.includes(cat)) group = "Affiliate";
-            else if (CATEGORY_GROUPS["其他社团 (Category B)"]?.includes(cat)) group = "Association";
-            else if (CATEGORY_GROUPS["其他 (Others)"]?.includes(cat)) group = "Individual";
+
+            // Use dynamic categories for lookup
+            if (categories["属会 (Category A)"]?.includes(cat)) group = "Affiliate";
+            else if (categories["其他社团 (Category B)"]?.includes(cat)) group = "Association";
+            else if (categories["其他 (Others)"]?.includes(cat)) group = "Individual";
             else {
                 if (cat.includes("属会") || cat.includes("Affiliate")) group = "Affiliate";
-                else if (cat.includes("社团") || cat.includes("Association")) group = "Association"; // Fixed typo
+                else if (cat.includes("社团") || cat.includes("Association")) group = "Association";
                 else if (cat.includes("个人") || cat.includes("Individual")) group = "Individual";
             }
             acc[group] = (acc[group] || 0) + 1;
             return acc;
         }, {});
         return { totalTables, totalPax, byCategory };
-    }, [tables]);
+    }, [tables, categories]);
 
     // Filter Logic
     const filteredTables = tables.filter(t =>
@@ -406,6 +429,13 @@ export default function SeatingPlan() {
                         批量导入
                     </button>
                     <button
+                        onClick={() => setIsCategoryManagerOpen(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                        管理类别
+                    </button>
+                    <button
                         onClick={() => setIsSmartImportOpen(true)}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
@@ -475,7 +505,7 @@ export default function SeatingPlan() {
                         };
 
                         filteredTables.forEach(table => {
-                            const groupName = getCategoryGroup(table.category);
+                            const groupName = getCategoryGroup(table.category, categories);
                             if (groups[groupName]) {
                                 groups[groupName].push(table);
                             } else {
@@ -592,7 +622,7 @@ export default function SeatingPlan() {
                                     <div key={index} className="flex gap-2 items-center">
                                         <div className="flex-1">
                                             <select
-                                                value={Object.values(CATEGORY_GROUPS).flat().includes(seat.category) ? seat.category : "Custom"}
+                                                value={Object.values(categories).flat().includes(seat.category) ? seat.category : "Custom"}
                                                 onChange={e => {
                                                     const val = e.target.value;
                                                     const newSeats = [...formData.seats];
@@ -602,7 +632,7 @@ export default function SeatingPlan() {
                                                 className="w-full border rounded-lg p-2 text-sm dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
                                             >
                                                 <option value="" disabled>选择类别</option>
-                                                {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
+                                                {Object.entries(categories).map(([group, items]) => (
                                                     <optgroup key={group} label={group}>
                                                         {items.map(item => (
                                                             <option key={item} value={item}>{item}</option>
@@ -611,7 +641,7 @@ export default function SeatingPlan() {
                                                 ))}
                                                 <option value="Custom">自定义 (Custom)...</option>
                                             </select>
-                                            {(!Object.values(CATEGORY_GROUPS).flat().includes(seat.category) || seat.category === "") && (
+                                            {(!Object.values(categories).flat().includes(seat.category) || seat.category === "") && (
                                                 <input
                                                     type="text"
                                                     placeholder="输入类别..."
@@ -668,7 +698,7 @@ export default function SeatingPlan() {
                                     <label className="block text-sm font-medium mb-1">类别 (选择或输入)</label>
                                     <div className="space-y-2">
                                         <select
-                                            value={Object.values(CATEGORY_GROUPS).flat().includes(formData.category) ? formData.category : "Custom"}
+                                            value={Object.values(categories).flat().includes(formData.category) ? formData.category : "Custom"}
                                             onChange={e => {
                                                 const val = e.target.value;
                                                 if (val === "Custom") {
@@ -679,7 +709,7 @@ export default function SeatingPlan() {
                                             }}
                                             className="w-full border rounded-lg p-2 dark:bg-[#2d2d2d] dark:border-[#3d3d3d] appearance-none"
                                         >
-                                            {Object.entries(CATEGORY_GROUPS).map(([group, items]) => (
+                                            {Object.entries(categories).map(([group, items]) => (
                                                 <optgroup key={group} label={group}>
                                                     {items.map(item => (
                                                         <option key={item} value={item}>{item}</option>
@@ -689,7 +719,7 @@ export default function SeatingPlan() {
                                             <option value="Custom">自定义 / 混合 (Custom/Mixed)...</option>
                                         </select>
 
-                                        {(!Object.values(CATEGORY_GROUPS).flat().includes(formData.category) || formData.category === "") && (
+                                        {(!Object.values(categories).flat().includes(formData.category) || formData.category === "") && (
                                             <input
                                                 type="text"
                                                 placeholder="输入自定义类别或混合说明..."
@@ -735,6 +765,14 @@ export default function SeatingPlan() {
                     </div>
                 </form>
             </Modal>
+
+            {/* Category Manager Modal */}
+            <CategoryManager
+                isOpen={isCategoryManagerOpen}
+                onClose={() => setIsCategoryManagerOpen(false)}
+                initialCategories={categories}
+                onSave={setCategories}
+            />
         </div>
     );
 }

@@ -198,6 +198,40 @@ app.post('/api/tables', (req, res) => {
     }
 });
 
+const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
+
+// API Routes - Categories
+app.get('/api/categories', (req, res) => {
+    if (fs.existsSync(CATEGORIES_FILE)) {
+        try {
+            const data = fs.readFileSync(CATEGORIES_FILE, 'utf8');
+            if (!data.trim()) {
+                return res.json({});
+            }
+            res.json(JSON.parse(data));
+        } catch (err) {
+            console.error('Error reading categories file:', err);
+            res.json({});
+        }
+    } else {
+        res.json({});
+    }
+});
+
+app.post('/api/categories', (req, res) => {
+    try {
+        const newCategories = req.body;
+        if (typeof newCategories !== 'object' || newCategories === null) {
+            return res.status(400).json({ error: 'Categories must be an object' });
+        }
+        fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(newCategories, null, 2));
+        res.json({ success: true, message: 'Categories saved successfully' });
+    } catch (err) {
+        console.error('Error writing categories file:', err);
+        res.status(500).json({ error: 'Failed to save categories' });
+    }
+});
+
 // Serve Static Assets (Production)
 // In development, Vite handles this. This server is primarily for the compiled container.
 if (process.env.NODE_ENV === 'production' || process.argv.includes('--production')) {
