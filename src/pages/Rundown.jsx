@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, Fragment } from 'react';
 import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
+import AutoTextarea from '../components/ui/AutoTextarea';
 import Modal from '../components/ui/Modal';
 import { getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
 
