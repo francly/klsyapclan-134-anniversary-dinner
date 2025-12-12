@@ -3,6 +3,7 @@ import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
 import AutoTextarea from '../components/ui/AutoTextarea';
+import { formatTime12 } from "../utils/timeHelpers";
 
 export default function Rundown() {
     const [rundown, setRundown] = useState([]);
@@ -243,19 +244,29 @@ export default function Rundown() {
                                                     {/* Time Inputs */}
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="time"
-                                                                value={startTime || ''}
-                                                                onChange={(e) => updateTime('start', e.target.value)}
-                                                                className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                            />
+                                                            <div className="flex flex-col gap-1">
+                                                                <input
+                                                                    type="time"
+                                                                    value={startTime || ''}
+                                                                    onChange={(e) => updateTime('start', e.target.value)}
+                                                                    className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                                />
+                                                                <span className="text-[10px] text-gray-400 font-mono text-center">
+                                                                    {formatTime12(startTime)}
+                                                                </span>
+                                                            </div>
                                                             <span className="text-gray-400">-</span>
-                                                            <input
-                                                                type="time"
-                                                                value={endTime || ''}
-                                                                onChange={(e) => updateTime('end', e.target.value)}
-                                                                className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
-                                                            />
+                                                            <div className="flex flex-col gap-1">
+                                                                <input
+                                                                    type="time"
+                                                                    value={endTime || ''}
+                                                                    onChange={(e) => updateTime('end', e.target.value)}
+                                                                    className="w-24 px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
+                                                                />
+                                                                <span className="text-[10px] text-gray-400 font-mono text-center">
+                                                                    {formatTime12(endTime)}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </td>
 
@@ -334,19 +345,23 @@ export default function Rundown() {
                                                             type="time"
                                                             value={startTime || ''}
                                                             onChange={(e) => updateTime('start', e.target.value)}
-                                                            className="text-lg font-bold bg-transparent text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 w-[5.5rem] p-0"
+                                                            className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                         />
-                                                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">Start</span>
+                                                        <span className="text-[10px] text-gray-400 font-mono text-center">
+                                                            {formatTime12(startTime)}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-gray-300 dark:text-gray-600">to</span>
+                                                    <span className="text-gray-400 text-sm mt-[-1rem]">-</span>
                                                     <div className="flex flex-col gap-1">
                                                         <input
                                                             type="time"
                                                             value={endTime || ''}
                                                             onChange={(e) => updateTime('end', e.target.value)}
-                                                            className="text-lg font-bold bg-transparent text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 w-[5.5rem] p-0"
+                                                            className="px-2 py-1 text-sm font-mono text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-[#333] border-transparent focus:border-blue-500 rounded outline-none transition-colors"
                                                         />
-                                                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">End</span>
+                                                        <span className="text-[10px] text-gray-400 font-mono text-center">
+                                                            {formatTime12(endTime)}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <button
