@@ -32,7 +32,10 @@ export default function Layout({ children }) {
                 )}
             >
                 <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-[#2d2d2d]">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">134周年晚宴</h1>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        134周年晚宴
+                        <span className="text-xs font-normal px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 text-gray-400 bg-gray-50 dark:bg-[#1a1a1a]">v89</span>
+                    </h1>
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-[#2d2d2d] transition-colors"
@@ -83,7 +86,10 @@ export default function Layout({ children }) {
                         >
                             <Menu className="w-6 h-6" />
                         </button>
-                        <span className="ml-4 text-lg font-semibold text-gray-900 dark:text-white">134周年晚宴</span>
+                        <span className="ml-4 text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            134周年晚宴
+                            <span className="text-xs font-normal px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 text-gray-400 bg-gray-50 dark:bg-[#1a1a1a]">v89</span>
+                        </span>
                     </div>
                     <button
                         onClick={toggleTheme}
