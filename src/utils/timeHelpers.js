@@ -1,6 +1,6 @@
 
 // Helper to format 24h time string to 12h AM/PM
-const formatTime12 = (timeStr) => {
+export const formatTime12 = (timeStr) => {
     if (!timeStr) return "";
     const [h, m] = timeStr.split(':').map(Number);
     const ampm = h >= 12 ? 'PM' : 'AM';
