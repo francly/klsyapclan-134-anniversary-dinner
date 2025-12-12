@@ -111,11 +111,26 @@ export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
                                     </select>
                                 </div>
                             </td>
-                            <td className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] text-gray-600 dark:text-gray-400 font-mono text-xs relative group/date">
-                                <span>{task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "-"}</span>
+                            <td
+                                className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] text-gray-600 dark:text-gray-400 font-mono text-xs relative group/date cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const input = e.currentTarget.querySelector('input');
+                                    if (input) {
+                                        try {
+                                            input.showPicker();
+                                        } catch (err) {
+                                            input.click();
+                                        }
+                                    }
+                                }}
+                            >
+                                <span className={!task.dueDate ? "text-transparent group-hover/date:text-gray-400" : ""}>
+                                    {task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "设置日期"}
+                                </span>
                                 <input
                                     type="date"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                     value={task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => {
