@@ -5,11 +5,14 @@ import { committee } from "../../data/committee";
 
 import { useState, useRef, useEffect } from "react";
 import DatePickerPopover from "../ui/DatePickerPopover";
+import MultiSelectPopover from "../ui/MultiSelectPopover";
 
 export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
     const [editingDateId, setEditingDateId] = useState(null);
     // Track which task has the date popover open
     const [activeDatePopoverId, setActiveDatePopoverId] = useState(null);
+    // Track which task has the assignee popover open
+    const [activeAssigneePopoverId, setActiveAssigneePopoverId] = useState(null);
 
     const StatusPill = ({ status }) => {
         const getStatusConfig = (s) => {
@@ -86,37 +89,42 @@ export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
                                     className={`w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-medium ${task.status === "done" ? "text-gray-400 line-through" : "text-gray-900 dark:text-gray-200"}`}
                                 />
                             </td>
-                            <td className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d]">
-                                <div className="flex items-center gap-2 relative group/assignee">
+                            <td className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] relative group/assignee cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveAssigneePopoverId(activeAssigneePopoverId === task.id ? null : task.id);
+                                }}
+                            >
+                                <div className="flex items-center gap-2">
                                     <div className="flex -space-x-1">
-                                        {task.assignees && task.assignees.slice(0, 2).map((assignee, i) => (
+                                        {task.assignees && task.assignees.slice(0, 3).map((assignee, i) => (
                                             <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-[10px] ring-2 ring-white dark:ring-[#111111] text-white font-bold" title={assignee}>
                                                 {assignee.charAt(0)}
                                             </div>
                                         ))}
+                                        {task.assignees && task.assignees.length > 3 && (
+                                            <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[10px] ring-2 ring-white dark:ring-[#111111] text-gray-500 dark:text-gray-300 font-bold">
+                                                +{task.assignees.length - 3}
+                                            </div>
+                                        )}
                                     </div>
                                     <span className="text-gray-600 dark:text-gray-400 text-xs truncate max-w-[100px]">
                                         {task.assignees && task.assignees.length > 0 ? task.assignees.join(", ") : "未分配"}
                                     </span>
-                                    <select
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        value={task.assignees?.[0] || ""}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onChange={(e) => {
-                                            e.stopPropagation();
-                                            onUpdate(task.id, { assignees: [e.target.value] });
-                                        }}
-                                    >
-                                        <option value="">未分配</option>
-                                        {committee.map(group => (
-                                            <optgroup key={group.role} label={group.role}>
-                                                {group.members.map(member => (
-                                                    <option key={member} value={member}>{member}</option>
-                                                ))}
-                                            </optgroup>
-                                        ))}
-                                    </select>
                                 </div>
+
+                                {activeAssigneePopoverId === task.id && (
+                                    <div onClick={(e) => e.stopPropagation()} className="absolute top-full left-0 z-50">
+                                        <MultiSelectPopover
+                                            selected={task.assignees || []}
+                                            onClose={() => setActiveAssigneePopoverId(null)}
+                                            onSelect={(newAssignees) => {
+                                                onUpdate(task.id, { assignees: newAssignees });
+                                                // Keep open for multiple selections
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </td>
                             <td
                                 className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] text-gray-600 dark:text-gray-400 font-mono text-xs relative group/date cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors"
