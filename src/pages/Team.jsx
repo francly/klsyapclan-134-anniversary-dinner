@@ -85,10 +85,21 @@ export default function CommitteeManager() {
                         <p className="text-gray-500 dark:text-gray-400 mt-1">管理委员会成员与职位 (CRUD)</p>
                     </div>
                     <button
-                        onClick={() => setIsEditing(!isEditing)}
+                        onClick={() => {
+                            if (isEditing) {
+                                setIsEditing(false);
+                            } else {
+                                const pwd = window.prompt("请输入编辑密码:");
+                                if (pwd === "1892") {
+                                    setIsEditing(true);
+                                } else if (pwd !== null) {
+                                    alert("密码错误");
+                                }
+                            }
+                        }}
                         className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${isEditing
-                                ? "bg-blue-600 text-white hover:bg-blue-700"
-                                : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-[#333] dark:text-gray-300"
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-[#333] dark:text-gray-300"
                             }`}
                     >
                         {isEditing ? <Save className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
