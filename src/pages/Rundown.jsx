@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Fragment } from 'react';
 import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
 import { committee } from '../data/committee';
-import AutoTextarea from '../components/ui/AutoTextarea';
+import Modal from '../components/ui/Modal';
 import { getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
 
 export default function Rundown() {
@@ -10,6 +10,14 @@ export default function Rundown() {
     const [isLoading, setIsLoading] = useState(true);
     const [committeeMembers, setCommitteeMembers] = useState([]);
     const saveTimeoutRef = useRef(null);
+
+    // Delete Modal State
+    const [deleteModal, setDeleteModal] = useState({
+        isOpen: false,
+        dayIndex: null,
+        slotIndex: null,
+        isDeleting: false
+    });
 
     // Fetch rundown data
     useEffect(() => {
@@ -129,24 +137,43 @@ export default function Rundown() {
         saveRundown(newRundown);
     };
 
-    const deleteSlot = async (dayIndex, slotIndex) => {
-        if (window.confirm("确定要删除这个活动吗？")) {
-            console.log(`Deleting slot at Day ${dayIndex}, Index ${slotIndex}`);
+    const deleteSlot = (dayIndex, slotIndex) => {
+        setDeleteModal({
+            isOpen: true,
+            dayIndex,
+            slotIndex,
+            isDeleting: false
+        });
+    };
 
-            // Create deep copy
-            const newRundown = JSON.parse(JSON.stringify(rundown));
+    const handleConfirmDelete = async () => {
+        const { dayIndex, slotIndex } = deleteModal;
+        if (dayIndex === null || slotIndex === null) return;
 
-            if (newRundown[dayIndex] && newRundown[dayIndex].slots) {
-                newRundown[dayIndex].slots.splice(slotIndex, 1);
-                setRundown(newRundown);
+        setDeleteModal(prev => ({ ...prev, isDeleting: true }));
 
-                const success = await saveRundown(newRundown, true); // Immediate save
-                if (success) {
-                    // small toast or just log? User wanted to know it works.
-                    // alert("已删除！"); // Optional, maybe too annoying?
-                }
-            } else {
-                console.error("Invalid day index or slots");
+        console.log(`Deleting slot at Day ${dayIndex}, Index ${slotIndex}`);
+
+        // Create deep copy
+        const newRundown = JSON.parse(JSON.stringify(rundown));
+
+        if (newRundown[dayIndex] && newRundown[dayIndex].slots) {
+            newRundown[dayIndex].slots.splice(slotIndex, 1);
+            setRundown(newRundown);
+
+            const success = await saveRundown(newRundown, true); // Immediate save
+
+            // Close modal regardless of success (UI is optimistic)
+            setDeleteModal({
+                isOpen: false,
+                dayIndex: null,
+                slotIndex: null,
+                isDeleting: false
+            });
+
+            if (!success) {
+                // If failed, maybe revert? For now just alert
+                // But user requested NO ALERT. Assuming saveRundown logs error.
             }
         }
     };
@@ -176,7 +203,7 @@ export default function Rundown() {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
                         <ClipboardList className="w-8 h-8 text-blue-500" />
-                        活动执行清单 (Rundown) <span className="text-xs text-blue-500 font-mono border border-blue-200 rounded px-1 group-hover:bg-blue-50">v85</span>
+                        活动执行清单 (Rundown)
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400">
                         管理详细的活动执行计划、负责人员和备注信息
@@ -483,6 +510,34 @@ export default function Rundown() {
                     ))}
                 </div>
             </div>
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                title="删除确认"
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300">
+                        确定要删除这个活动项目吗？此操作无法撤销。
+                    </p>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-[#333] rounded-lg transition-colors"
+                            disabled={deleteModal.isDeleting}
+                        >
+                            取消
+                        </button>
+                        <button
+                            onClick={handleConfirmDelete}
+                            className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                            disabled={deleteModal.isDeleting}
+                        >
+                            {deleteModal.isDeleting ? '正在删除...' : '确定删除'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

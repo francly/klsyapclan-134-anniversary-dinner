@@ -32,10 +32,9 @@ export default function Layout({ children }) {
                 )}
             >
                 <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-[#2d2d2d]">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        134周年晚宴
-                        <span className="text-xs font-normal px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 text-gray-400 bg-gray-50 dark:bg-[#1a1a1a]">v89</span>
-                    </h1>
+                    <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        134周年晚宴 <span className="text-xs text-gray-400 border border-gray-200 rounded px-1 ml-1 font-mono">v90</span>
+                    </span>
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-[#2d2d2d] transition-colors"
