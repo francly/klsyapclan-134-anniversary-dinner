@@ -139,7 +139,7 @@ export default function CommitteeManager() {
                                     type="password"
                                     value={passwordInput}
                                     onChange={(e) => setPasswordInput(e.target.value)}
-                                    placeholder="输入密码 (1892)"
+                                    placeholder="请输入管理员密码"
                                     autoFocus
                                     className="w-full px-4 py-2 bg-gray-50 dark:bg-[#333] border border-gray-200 dark:border-[#444] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                                 />
