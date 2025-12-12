@@ -1,12 +1,11 @@
 import { X, Calendar, User, Flag, CheckCircle2, Circle, Trash2, Sun, Bell, Repeat, Tag, Paperclip, Plus, Send, Check } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { committee } from "../data/committee";
 import { cn } from "../lib/utils";
 import { useState, useRef, useEffect } from "react";
 import DatePickerPopover from "./ui/DatePickerPopover";
 
-export default function TaskDetailPanel({ task, onClose, onUpdate, onDelete, onAddComment }) {
+export default function TaskDetailPanel({ task, onClose, onUpdate, onDelete, onAddComment, committee = [] }) {
     const [commentText, setCommentText] = useState("");
     const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
     const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);

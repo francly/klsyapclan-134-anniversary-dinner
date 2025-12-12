@@ -4,7 +4,6 @@ import TaskDetailPanel from "../components/TaskDetailPanel";
 import TaskTableView from "../components/views/TaskTableView";
 import TaskKanbanView from "../components/views/TaskKanbanView";
 import TaskGanttView from "../components/views/TaskGanttView";
-import { committee, getAllMembers } from "../data/committee";
 import { Plus, Circle, CheckCircle2, Star, LayoutGrid, List as ListIcon, Calendar, User, ArrowUpDown, Clock, ChevronRight, Check, Search, Filter, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { format, addDays, nextMonday, isSameDay } from "date-fns";
@@ -36,8 +35,26 @@ export default function Tasks() {
     const datePopoverRef = useRef(null);
     const assigneePopoverRef = useRef(null);
 
+    const [committeeData, setCommitteeData] = useState([]);
+    const [allMembers, setAllMembers] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/committee')
+            .then(res => res.json())
+            .then(data => {
+                setCommitteeData(data);
+                const members = new Set();
+                data.forEach(g => {
+                    if (g.members && Array.isArray(g.members)) {
+                        g.members.forEach(m => members.add(m));
+                    }
+                });
+                setAllMembers(Array.from(members).sort());
+            })
+            .catch(err => console.error("Failed to load committee", err));
+    }, []);
+
     const selectedTask = tasks.find(t => t.id === selectedTaskId);
-    const allMembers = getAllMembers(); // Get flattened list of members
 
     // Close popovers when clicking outside
     useEffect(() => {
@@ -108,7 +125,7 @@ export default function Tasks() {
         if (filterRole !== "all") {
             const taskAssignees = task.assignees || (task.assignee ? [task.assignee] : []);
             if (taskAssignees.length === 0) return false;
-            const roleMembers = committee.find(g => g.role === filterRole)?.members || [];
+            const roleMembers = committeeData.find(g => g.role === filterRole)?.members || [];
             return taskAssignees.some(member => roleMembers.includes(member));
         }
 
@@ -367,7 +384,7 @@ export default function Tasks() {
                                                 <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-[#2d2d2d]">
                                                     指派给... (可多选)
                                                 </div>
-                                                {committee.map(group => (
+                                                {committeeData.map(group => (
                                                     <div key={group.role}>
                                                         <div className="px-4 py-1.5 text-xs font-semibold text-gray-400 bg-gray-50 dark:bg-[#2d2d2d] sticky top-0">{group.role}</div>
                                                         {group.members.map(member => {
@@ -491,6 +508,7 @@ export default function Tasks() {
                         setSelectedTaskId(null);
                     }}
                     onAddComment={addComment}
+                    committee={committeeData}
                 />
             )}
         </div>

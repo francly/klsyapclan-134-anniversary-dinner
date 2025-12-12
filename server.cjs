@@ -232,6 +232,38 @@ app.post('/api/categories', (req, res) => {
     }
 });
 
+const COMMITTEE_FILE = path.join(DATA_DIR, 'committee.json');
+
+// API Routes - Committee
+app.get('/api/committee', (req, res) => {
+    if (fs.existsSync(COMMITTEE_FILE)) {
+        try {
+            const data = fs.readFileSync(COMMITTEE_FILE, 'utf8');
+            res.json(JSON.parse(data));
+        } catch (err) {
+            console.error('Error reading committee file:', err);
+            res.status(500).json({ error: 'Failed to read committee' });
+        }
+    } else {
+        // Return empty array if not exists
+        res.json([]);
+    }
+});
+
+app.post('/api/committee', (req, res) => {
+    try {
+        const newCommittee = req.body;
+        if (!Array.isArray(newCommittee)) {
+            return res.status(400).json({ error: 'Committee must be an array' });
+        }
+        fs.writeFileSync(COMMITTEE_FILE, JSON.stringify(newCommittee, null, 2));
+        res.json({ success: true, message: 'Committee saved successfully' });
+    } catch (err) {
+        console.error('Error writing committee file:', err);
+        res.status(500).json({ error: 'Failed to save committee' });
+    }
+});
+
 // Serve Static Assets (Production)
 // In development, Vite handles this. This server is primarily for the compiled container.
 if (process.env.NODE_ENV === 'production' || process.argv.includes('--production')) {

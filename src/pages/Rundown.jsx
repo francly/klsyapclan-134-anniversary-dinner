@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { ClipboardList, Plus, Trash2, Users } from 'lucide-react';
 import { rundownData as initialRundownData } from '../data/rundown';
-import { committee } from '../data/committee';
 import AutoTextarea from '../components/ui/AutoTextarea';
 import Modal from '../components/ui/Modal';
 import { getTimePeriod, getPeriodLabel, getAmPm } from "../utils/timeHelpers";
@@ -46,29 +45,33 @@ export default function Rundown() {
             });
     }, []);
 
-    // Fetch committee members for dropdown
-    // Load committee members from local data (bypassing potentially unstable API)
+    // Fetch committee members for dropdown from API
     useEffect(() => {
-        try {
-            const options = [];
-            committee.forEach(dept => {
-                // Add Role (Position)
-                if (dept.role && !options.includes(dept.role)) {
-                    options.push(dept.role);
-                }
-                // Add Members (Strings)
-                if (Array.isArray(dept.members)) {
-                    dept.members.forEach(m => {
-                        if (m && typeof m === 'string' && !options.includes(m)) {
-                            options.push(m);
+        fetch('/api/committee')
+            .then(res => res.json())
+            .then(data => {
+                const options = [];
+                if (Array.isArray(data)) {
+                    data.forEach(dept => {
+                        // Add Role
+                        if (dept.role && !options.includes(dept.role)) {
+                            options.push(dept.role);
+                        }
+                        // Add Members
+                        if (Array.isArray(dept.members)) {
+                            dept.members.forEach(m => {
+                                if (m && typeof m === 'string' && !options.includes(m)) {
+                                    options.push(m);
+                                }
+                            });
                         }
                     });
                 }
+                setCommitteeMembers(options.sort());
+            })
+            .catch(err => {
+                console.error("Failed to load committee members", err);
             });
-            setCommitteeMembers(options.sort());
-        } catch (err) {
-            console.error("Failed to process committee data", err);
-        }
     }, []);
 
     // Debounced save
