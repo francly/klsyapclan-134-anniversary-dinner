@@ -151,16 +151,28 @@ export default function SeatingPlan() {
     };
 
 
+    // Auth Modal State
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [passwordInput, setPasswordInput] = useState("");
+    const [authError, setAuthError] = useState("");
 
-    // Clear All Handler (FIXED - direct save empty array)
-    const handleClearAll = async () => {
-        const password = window.prompt('⚠️ 危险操作！\n\n请输入密码以清除所有桌次数据：');
-
-        if (password !== '1892') {
-            if (password !== null) alert('密码错误！');
-            return;
+    const handleAuthSubmit = async (e) => {
+        e.preventDefault();
+        if (passwordInput === "1892") {
+            setAuthModalOpen(false);
+            setPasswordInput("");
+            setAuthError("");
+            await performClearAll();
+        } else {
+            setAuthError("密码错误");
         }
+    };
 
+    const handleClearAllClick = () => {
+        setAuthModalOpen(true);
+    };
+
+    const performClearAll = async () => {
         const currentCount = tables.length;
         if (!window.confirm(`确定要删除所有 ${currentCount} 张桌次吗？\n\n此操作不可恢复！`)) return;
 
@@ -345,7 +357,7 @@ export default function SeatingPlan() {
                         添加桌次
                     </button>
                     <button
-                        onClick={handleClearAll}
+                        onClick={handleClearAllClick}
                         className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-sm"
                     >
                         <Trash2 className="w-4 h-4" />
@@ -438,6 +450,46 @@ export default function SeatingPlan() {
                 </div>
             )}
 
+
+            {/* Auth Modal for Clear All */}
+            <Modal
+                isOpen={authModalOpen}
+                onClose={() => {
+                    setAuthModalOpen(false);
+                    setPasswordInput("");
+                    setAuthError("");
+                }}
+                title="请输入管理员密码"
+            >
+                <form onSubmit={handleAuthSubmit} className="space-y-4">
+                    <div>
+                        <input
+                            type="password"
+                            value={passwordInput}
+                            onChange={(e) => setPasswordInput(e.target.value)}
+                            placeholder="请输入管理员密码"
+                            autoFocus
+                            className="w-full px-4 py-2 bg-gray-50 dark:bg-[#333] border border-gray-200 dark:border-[#444] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                        />
+                        {authError && <p className="text-red-500 text-sm mt-1">{authError}</p>}
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setAuthModalOpen(false)}
+                            className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            取消
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                        >
+                            确认清除
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             {/*智能导入 Modal */}
             <Modal isOpen={isSmartImportOpen} onClose={() => { setIsSmartImportOpen(false); setPasteData(''); }} title="智能批量导入">
