@@ -63,24 +63,33 @@ export default function Rundown() {
     }, []);
 
     // Debounced save
-    const saveRundown = (newData, immediate = false) => {
+    const saveRundown = async (newData, immediate = false) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
 
-        const doSave = () => {
-            fetch('/api/rundown', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newData),
-            })
-                .then(res => res.json())
-                .then(data => console.log("Saved:", data))
-                .catch(err => console.error("Save failed:", err));
+        const doSave = async () => {
+            try {
+                const res = await fetch('/api/rundown', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newData),
+                });
+
+                if (!res.ok) throw new Error("API Error");
+
+                const data = await res.json();
+                console.log("Saved successfully:", data);
+                return true;
+            } catch (err) {
+                console.error("Save failed:", err);
+                alert("保存失败，请检查网络或重试！");
+                return false;
+            }
         };
 
         if (immediate) {
-            doSave();
+            await doSave();
         } else {
             saveTimeoutRef.current = setTimeout(doSave, 1000);
         }
@@ -120,19 +129,25 @@ export default function Rundown() {
         saveRundown(newRundown);
     };
 
-    const deleteSlot = (dayIndex, slotIndex) => {
+    const deleteSlot = async (dayIndex, slotIndex) => {
         if (window.confirm("确定要删除这个活动吗？")) {
-            const newRundown = rundown.map((day, dIdx) => {
-                if (dIdx === dayIndex) {
-                    return {
-                        ...day,
-                        slots: day.slots.filter((_, sIdx) => sIdx !== slotIndex)
-                    };
+            console.log(`Deleting slot at Day ${dayIndex}, Index ${slotIndex}`);
+
+            // Create deep copy
+            const newRundown = JSON.parse(JSON.stringify(rundown));
+
+            if (newRundown[dayIndex] && newRundown[dayIndex].slots) {
+                newRundown[dayIndex].slots.splice(slotIndex, 1);
+                setRundown(newRundown);
+
+                const success = await saveRundown(newRundown, true); // Immediate save
+                if (success) {
+                    // small toast or just log? User wanted to know it works.
+                    // alert("已删除！"); // Optional, maybe too annoying?
                 }
-                return day;
-            });
-            setRundown(newRundown);
-            saveRundown(newRundown, true); // Immediate save
+            } else {
+                console.error("Invalid day index or slots");
+            }
         }
     };
 
