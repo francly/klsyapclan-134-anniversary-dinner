@@ -3,7 +3,11 @@ import { zhCN } from "date-fns/locale";
 import { CheckCircle2, Circle, Star, User, Calendar, Clock } from "lucide-react";
 import { committee } from "../../data/committee";
 
+import { useState } from "react";
+
 export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
+    const [editingDateId, setEditingDateId] = useState(null);
+
     const StatusPill = ({ status }) => {
         const getStatusConfig = (s) => {
             switch (s) {
@@ -115,29 +119,33 @@ export default function TaskTableView({ tasks, onTaskClick, onUpdate }) {
                                 className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d] text-gray-600 dark:text-gray-400 font-mono text-xs relative group/date cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    const input = e.currentTarget.querySelector('input');
-                                    if (input) {
-                                        try {
-                                            input.showPicker();
-                                        } catch (err) {
-                                            input.click();
-                                        }
-                                    }
+                                    setEditingDateId(task.id);
                                 }}
                             >
-                                <span className={!task.dueDate ? "text-transparent group-hover/date:text-gray-400" : ""}>
-                                    {task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "设置日期"}
-                                </span>
-                                <input
-                                    type="date"
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    value={task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) => {
-                                        e.stopPropagation();
-                                        onUpdate(task.id, { dueDate: e.target.value });
-                                    }}
-                                />
+                                {editingDateId === task.id ? (
+                                    <input
+                                        type="date"
+                                        autoFocus
+                                        className="w-full h-full bg-white dark:bg-[#111111] border border-blue-500 rounded px-1 outline-none text-gray-900 dark:text-white"
+                                        value={task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            onUpdate(task.id, { dueDate: e.target.value });
+                                            setEditingDateId(null);
+                                        }}
+                                        onBlur={() => setEditingDateId(null)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === 'Escape') {
+                                                setEditingDateId(null);
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className={!task.dueDate ? "text-gray-300 group-hover:text-gray-400" : ""}>
+                                        {task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "设置日期"}
+                                    </span>
+                                )}
                             </td>
                             <td className="px-3 py-3 border-r border-gray-50 dark:border-[#2d2d2d]">
                                 <div className="relative group/status">
